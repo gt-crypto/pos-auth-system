@@ -1,0 +1,156 @@
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1B4B" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F472B6"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.02"/>
+    </linearGradient>
+    
+    <!-- Filters for Glow and Shadow -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <feDropShadow id="shadow" dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.4"/>
+  </defs>
+
+  <!-- Background Decorative Ring -->
+  <circle cx="250" cy="250" r="180" stroke="url(#purpleGrad)" stroke-width="1.5" stroke-opacity="0.15" stroke-dasharray="10 15"/>
+  <circle cx="250" cy="250" r="220" stroke="url(#blueGrad)" stroke-width="1" stroke-opacity="0.1" stroke-dasharray="5 8"/>
+
+  <!-- Glowing background orbs -->
+  <circle cx="140" cy="180" r="70" fill="#2563EB" opacity="0.25" filter="url(#glow)"/>
+  <circle cx="360" cy="320" r="60" fill="#8B5CF6" opacity="0.2" filter="url(#glow)"/>
+
+  <!-- MAIN DASHBOARD WINDOW -->
+  <g filter="url(#shadow)">
+    <!-- Window Body -->
+    <rect x="80" y="100" width="340" height="260" rx="16" fill="url(#bgGrad)" stroke="#1F2937" stroke-width="2"/>
+    <rect x="80" y="100" width="340" height="260" rx="16" fill="url(#glassGrad)"/>
+    
+    <!-- Window Header / Browser Bar -->
+    <rect x="80" y="100" width="340" height="32" rx="16" fill="#111827" fill-opacity="0.5"/>
+    <!-- Window Controls -->
+    <circle cx="102" cy="116" r="5" fill="#EF4444"/>
+    <circle cx="118" cy="116" r="5" fill="#F59E0B"/>
+    <circle cx="134" cy="116" r="5" fill="#10B981"/>
+    <rect x="160" y="111" width="180" height="10" rx="5" fill="#1F2937"/>
+  </g>
+
+  <!-- SIDEBAR (Within Dashboard) -->
+  <rect x="92" y="144" width="64" height="204" rx="8" fill="#111827" fill-opacity="0.4"/>
+  <!-- Sidebar Menu Items -->
+  <rect x="100" y="156" width="48" height="8" rx="4" fill="#38BDF8" fill-opacity="0.8"/>
+  <rect x="100" y="176" width="48" height="6" rx="3" fill="#374151"/>
+  <rect x="100" y="192" width="48" height="6" rx="3" fill="#374151"/>
+  <rect x="100" y="208" width="48" height="6" rx="3" fill="#374151"/>
+  <rect x="100" y="224" width="48" height="6" rx="3" fill="#374151"/>
+
+  <!-- DASHBOARD CHARTS (Right Section) -->
+  <!-- Revenue Graph Card -->
+  <g filter="url(#shadow)">
+    <rect x="168" y="144" width="238" height="100" rx="12" fill="#111827" fill-opacity="0.7" stroke="#1F2937" stroke-width="1"/>
+    <text x="180" y="164" fill="#9CA3AF" font-family="var(--font-sans), sans-serif" font-size="10" font-weight="600">REVENUE OVERVIEW</text>
+    
+    <!-- Graph Bars -->
+    <rect x="184" y="210" width="12" height="24" rx="2" fill="url(#blueGrad)"/>
+    <rect x="204" y="190" width="12" height="44" rx="2" fill="url(#blueGrad)"/>
+    <rect x="224" y="180" width="12" height="54" rx="2" fill="url(#blueGrad)"/>
+    <rect x="244" y="200" width="12" height="34" rx="2" fill="url(#blueGrad)"/>
+    <rect x="264" y="170" width="12" height="64" rx="2" fill="url(#purpleGrad)"/>
+    <rect x="284" y="185" width="12" height="49" rx="2" fill="url(#blueGrad)"/>
+    <rect x="304" y="160" width="12" height="74" rx="2" fill="url(#purpleGrad)"/>
+    <rect x="324" y="150" width="12" height="84" rx="2" fill="url(#purpleGrad)"/>
+    <rect x="344" y="175" width="12" height="59" rx="2" fill="url(#blueGrad)"/>
+    <rect x="364" y="195" width="12" height="39" rx="2" fill="url(#blueGrad)"/>
+  </g>
+
+  <!-- STATS CARDS (Bottom Left Within Dashboard) -->
+  <rect x="168" y="254" width="114" height="44" rx="10" fill="#111827" fill-opacity="0.6" stroke="#1F2937" stroke-width="1"/>
+  <text x="178" y="268" fill="#9CA3AF" font-family="var(--font-sans), sans-serif" font-size="8" font-weight="600">INVENTORY ITEMS</text>
+  <text x="178" y="288" fill="#F3F4F6" font-family="var(--font-sans), sans-serif" font-size="14" font-weight="700">1,248 units</text>
+
+  <!-- STATS CARDS (Bottom Right Within Dashboard) -->
+  <rect x="292" y="254" width="114" height="44" rx="10" fill="#111827" fill-opacity="0.6" stroke="#1F2937" stroke-width="1"/>
+  <text x="302" y="268" fill="#9CA3AF" font-family="var(--font-sans), sans-serif" font-size="8" font-weight="600">SALES COMPLETED</text>
+  <text x="302" y="288" fill="#34D399" font-family="var(--font-sans), sans-serif" font-size="14" font-weight="700">412 orders</text>
+
+  <!-- TABLE LOGS (Bottom list) -->
+  <rect x="168" y="308" width="238" height="40" rx="8" fill="#111827" fill-opacity="0.6" stroke="#1F2937" stroke-width="1"/>
+  <!-- Table rows -->
+  <circle cx="180" cy="328" r="4" fill="#34D399"/>
+  <rect x="192" y="324" width="70" height="8" rx="4" fill="#F3F4F6" fill-opacity="0.8"/>
+  <rect x="330" y="324" width="64" height="8" rx="4" fill="#2563EB"/>
+
+  <!-- FLOATING CORE ELEMENTS (PARALLAX EFFECT TARGETS) -->
+  
+  <!-- FLOATING CARD 1: Transaction Successful (Glassmorphic Accent Card) -->
+  <g filter="url(#shadow)" transform="translate(40, 240)">
+    <rect x="0" y="0" width="150" height="74" rx="14" fill="#0F172A" fill-opacity="0.8" stroke="url(#blueGrad)" stroke-width="1.5"/>
+    <rect x="0" y="0" width="150" height="74" rx="14" fill="url(#glassGrad)"/>
+    
+    <!-- Success Icon Circle -->
+    <circle cx="28" cy="37" r="14" fill="#10B981" fill-opacity="0.2"/>
+    <path d="M24 37L27 40L32 34" stroke="#34D399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <text x="50" y="34" fill="#F3F4F6" font-family="var(--font-sans), sans-serif" font-size="11" font-weight="700">Payment</text>
+    <text x="50" y="48" fill="#9CA3AF" font-family="var(--font-sans), sans-serif" font-size="9" font-weight="500">+$124.50</text>
+    
+    <rect x="106" y="28" width="34" height="18" rx="9" fill="#10B981" fill-opacity="0.15"/>
+    <text x="114" y="40" fill="#34D399" font-family="var(--font-sans), sans-serif" font-size="8" font-weight="700">POS</text>
+  </g>
+
+  <!-- FLOATING CARD 2: Stock Alert (Low Stock warning) -->
+  <g filter="url(#shadow)" transform="translate(320, 60)">
+    <rect x="0" y="0" width="140" height="66" rx="14" fill="#0F172A" fill-opacity="0.8" stroke="url(#purpleGrad)" stroke-width="1.5"/>
+    <rect x="0" y="0" width="140" height="66" rx="14" fill="url(#glassGrad)"/>
+    
+    <!-- Box Icon -->
+    <circle cx="24" cy="33" r="12" fill="#EF4444" fill-opacity="0.2"/>
+    <!-- Simple 3D Box drawing inside circle -->
+    <path d="M24 26L30 29L24 32L18 29L24 26Z" fill="#F87171"/>
+    <path d="M18 29V36L24 39V32L18 29Z" fill="#EF4444"/>
+    <path d="M24 32V39L30 36V29L24 32Z" fill="#DC2626"/>
+
+    <text x="44" y="30" fill="#F3F4F6" font-family="var(--font-sans), sans-serif" font-size="10" font-weight="700">Stock Alert</text>
+    <text x="44" y="44" fill="#9CA3AF" font-family="var(--font-sans), sans-serif" font-size="8" font-weight="500">Avocados - 4 left</text>
+  </g>
+
+  <!-- FLOATING CARD 3: Connected Nodes/Terminals -->
+  <g filter="url(#shadow)" transform="translate(300, 310)">
+    <rect x="0" y="0" width="160" height="60" rx="12" fill="#0F172A" fill-opacity="0.95" stroke="#1F2937" stroke-width="1"/>
+    
+    <!-- User Badge -->
+    <circle cx="24" cy="30" r="10" fill="url(#blueGrad)"/>
+    <path d="M20 36C20 33.5 21.8 32 24 32C26.2 32 28 33.5 28 36" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="24" cy="28" r="3.5" fill="#FFFFFF"/>
+    
+    <text x="42" y="27" fill="#F3F4F6" font-family="var(--font-sans), sans-serif" font-size="9" font-weight="700">Cashier Active</text>
+    <text x="42" y="39" fill="#9CA3AF" font-family="var(--font-sans), sans-serif" font-size="8" font-weight="500">Terminal #04 &bull; Main Branch</text>
+    
+    <!-- Status Green Ring -->
+    <circle cx="140" cy="30" r="5" fill="#10B981" filter="url(#glow)"/>
+    <circle cx="140" cy="30" r="3.5" fill="#10B981"/>
+  </g>
+
+  <!-- Additional floating decorative shapes -->
+  <polygon points="120,60 128,74 112,74" fill="#38BDF8" opacity="0.3" transform="rotate(15 120 60)"/>
+  <circle cx="280" cy="420" r="8" fill="#F472B6" opacity="0.3"/>
+  <rect x="60" y="390" width="12" height="12" rx="3" fill="#8B5CF6" opacity="0.25" transform="rotate(45 60 390)"/>
+</svg>
