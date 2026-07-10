@@ -13,7 +13,7 @@ import Order from './models/Order.js';
 import AuditLog from './models/AuditLog.js';
 
 dotenv.config();
-
+console.log(process.env.MONGO_URI ? "MONGO_URI loaded" : "MONGO_URI missing");
 const log = (message) => console.log(`[seed] ${message}`);
 
 const ensureDocument = async (Model, filter, values) => {
@@ -56,10 +56,11 @@ const seed = async () => {
   if (!process.env.MONGO_URI) {
     throw new Error('MONGO_URI is missing');
   }
+console.log("Before MongoDB connect");
 
-  await mongoose.connect(process.env.MONGO_URI);
-  log('connected to MongoDB');
+await mongoose.connect(process.env.MONGO_URI);
 
+console.log("After MongoDB connect");
   const superAdmin = await ensureUser(
     { username: 'superadmin' },
     {

@@ -3,7 +3,7 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   withCredentials: true, // Crucial for reading/writing HttpOnly session cookies
-  timeout: 5000,
+  
   headers: {
     'Content-Type': 'application/json'
   }
