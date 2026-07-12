@@ -251,10 +251,6 @@ export const Billing = ({ user, showToast }) => {
   // Split payments layout state
   const [payments, setPayments] = useState([{ method: 'CASH', amount: '', referenceNumber: '' }]);
 
-  // Customer context
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [customers, setCustomers] = useState([]);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [walkInName, setWalkInName] = useState('Walk-in Customer');
   const [walkInPhone, setWalkInPhone] = useState('');
 
@@ -317,19 +313,6 @@ export const Billing = ({ user, showToast }) => {
   }, [selectedBranchId, user, showToast]);
 
   useEffect(() => { fetchCatalog(); }, [fetchCatalog]);
-
-  // ── Customer Search ───────────────────────────────────────────────────────
-  useEffect(() => {
-    if (customerSearch.length < 2) { setCustomers([]); return; }
-    const lookup = async () => {
-      try {
-        const res = await api.get(`/customers/search?q=${customerSearch}`);
-        setCustomers(res.data.data?.customers || []);
-      } catch {}
-    };
-    const tid = setTimeout(lookup, 300);
-    return () => clearTimeout(tid);
-  }, [customerSearch]);
 
   // ── Cart Calculations ──────────────────────────────────────────────────────
   const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
@@ -398,7 +381,7 @@ export const Billing = ({ user, showToast }) => {
   };
 
   const removeItem = (itemId) => setCart(c => c.filter(i => i.itemId !== itemId));
-  const clearCart = () => { setCart([]); setSelectedCustomer(null); setCustomerSearch(''); };
+  const clearCart = () => { setCart([]); };
 
   // ── Payment allocation splits ─────────────────────────────────────────────
   const addPaymentMethod = () => setPayments(p => [...p, { method: 'CASH', amount: '', referenceNumber: '' }]);
@@ -416,9 +399,9 @@ export const Billing = ({ user, showToast }) => {
 
     const checkoutData = {
       branchId: selectedBranchId || user?.branchId || null,
-      customerId: selectedCustomer?._id || null,
-      customerName: selectedCustomer ? selectedCustomer.name : walkInName,
-      customerPhone: selectedCustomer ? selectedCustomer.phoneNumber : walkInPhone,
+      customerId: null,
+      customerName: walkInName,
+      customerPhone: walkInPhone,
       items: cart.map(i => ({
         productId: i.productId,
         name: i.name,
@@ -458,9 +441,9 @@ export const Billing = ({ user, showToast }) => {
 
     const holdData = {
       branchId: selectedBranchId || user?.branchId || null,
-      customerId: selectedCustomer?._id || null,
-      customerName: selectedCustomer ? selectedCustomer.name : walkInName,
-      customerPhone: selectedCustomer ? selectedCustomer.phoneNumber : walkInPhone,
+      customerId: null,
+      customerName: walkInName,
+      customerPhone: walkInPhone,
       items: cart.map(i => ({
         productId: i.productId,
         name: i.name,
@@ -514,8 +497,8 @@ export const Billing = ({ user, showToast }) => {
         totalPrice: i.totalPrice,
         variantName: i.variantName || ''
       })));
-      if (order.customerId) setSelectedCustomer(order.customerId);
-      else { setWalkInName(order.customerName); setWalkInPhone(order.customerPhone); }
+      setWalkInName(order.customerName || 'Walk-in Customer');
+      setWalkInPhone(order.customerPhone || '');
       
       // Delete held order from DB
       await api.post(`/billing/cancel-hold/${order._id}`);
@@ -556,8 +539,6 @@ export const Billing = ({ user, showToast }) => {
               onChange={e => {
                 setSelectedBranchId(e.target.value);
                 setCart([]); // Clear cart when switching branches to prevent cross-branch orders
-                setSelectedCustomer(null);
-                setCustomerSearch('');
               }}
               className="px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/30 shrink-0"
             >
@@ -637,46 +618,22 @@ export const Billing = ({ user, showToast }) => {
           <span className="ml-auto px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-[10px] font-bold text-blue-600">{cart.length} Items</span>
         </div>
 
-        {/* Customer Context Selection */}
-        <div className="mb-4">
-          {!selectedCustomer ? (
-            <div className="flex flex-col gap-2">
-              <input
-                type="text" value={customerSearch} onChange={e => setCustomerSearch(e.target.value)}
-                placeholder="Search registered customer..."
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400/30"
-              />
-              {customers.length > 0 && (
-                <div className="bg-white border border-slate-200 rounded-xl max-h-[120px] overflow-y-auto flex flex-col gap-1 p-2">
-                  {customers.map(c => (
-                    <button
-                      key={c._id} onClick={() => { setSelectedCustomer(c); setCustomers([]); setCustomerSearch(''); }}
-                      className="text-left px-3 py-1.5 hover:bg-slate-50 text-xs font-semibold text-slate-700 rounded-lg flex justify-between"
-                    >
-                      <span>{c.name}</span>
-                      <span className="text-slate-400">{c.phoneNumber}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {customerSearch.length >= 2 && customers.length === 0 && <p className="text-[10px] text-slate-400 text-center">No customer found.</p>}
-              <div className="flex gap-2">
-                <input type="text" value={walkInName} onChange={e => setWalkInName(e.target.value)} placeholder="Walk-in Name" className="flex-1 px-3 py-1.5 border border-slate-200 rounded-xl text-[11px] font-medium" />
-                <input type="text" value={walkInPhone} onChange={e => setWalkInPhone(e.target.value)} placeholder="Walk-in Phone" className="flex-1 px-3 py-1.5 border border-slate-200 rounded-xl text-[11px] font-medium" />
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between p-3 border border-blue-100 bg-blue-50/50 rounded-xl">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-blue-600" />
-                <div>
-                  <p className="text-xs font-bold text-slate-800">{selectedCustomer.name}</p>
-                  <p className="text-[10px] text-slate-500">{selectedCustomer.phoneNumber}</p>
-                </div>
-              </div>
-              <button onClick={() => setSelectedCustomer(null)} className="p-1 rounded hover:bg-blue-100 text-blue-600"><X className="h-3.5 w-3.5" /></button>
-            </div>
-          )}
+        {/* Walk-in Customer Details */}
+        <div className="mb-4 flex gap-2">
+          <input
+            type="text"
+            value={walkInName}
+            onChange={e => setWalkInName(e.target.value)}
+            placeholder="Walk-in Name"
+            className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+          />
+          <input
+            type="text"
+            value={walkInPhone}
+            onChange={e => setWalkInPhone(e.target.value)}
+            placeholder="Walk-in Phone"
+            className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+          />
         </div>
 
         {/* Scrollable Cart Items */}
