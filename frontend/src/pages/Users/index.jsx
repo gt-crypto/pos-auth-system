@@ -48,6 +48,10 @@ export const Users = ({ user: currentUser, showToast }) => {
   
   const [submitting, setSubmitting] = useState(false);
 
+  const getErrorMessage = (err, fallback) => {
+    return err?.message || err?.response?.data?.message || fallback;
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -122,13 +126,21 @@ export const Users = ({ user: currentUser, showToast }) => {
     setSubmitting(true);
     try {
       const payload = { ...formValues };
+      payload.branchId = payload.branchId ? String(payload.branchId) : null;
+
       // Admin: role is always CASHIER, branchId is admin's branchId
       if (currentUser?.role === 'ADMIN') {
         payload.role = 'CASHIER';
-        payload.branchId = currentUser.branchId;
+        payload.branchId = currentUser.branchId?._id || currentUser.branchId || null;
       }
       if (payload.role === 'SUPER_ADMIN') {
-        payload.branchId = null;
+        delete payload.branchId;
+      }
+
+      if ((payload.role === 'ADMIN' || payload.role === 'CASHIER') && !payload.branchId) {
+        showToast('Please select a branch for this user.', 'error');
+        setSubmitting(false);
+        return;
       }
 
       await api.post('/users', payload);
@@ -136,7 +148,7 @@ export const Users = ({ user: currentUser, showToast }) => {
       setShowCreateModal(false);
       fetchUsers();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to create user', 'error');
+      showToast(getErrorMessage(err, 'Failed to create user'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -147,6 +159,8 @@ export const Users = ({ user: currentUser, showToast }) => {
     setSubmitting(true);
     try {
       const payload = { ...formValues };
+      payload.branchId = payload.branchId ? String(payload.branchId) : null;
+
       if (!payload.password) {
         delete payload.password; // Do not send empty password
       }
@@ -156,7 +170,7 @@ export const Users = ({ user: currentUser, showToast }) => {
         delete payload.branchId;
       }
       if (payload.role === 'SUPER_ADMIN') {
-        payload.branchId = null;
+        delete payload.branchId;
       }
 
       await api.patch(`/users/${selectedUser._id}`, payload);
@@ -164,7 +178,7 @@ export const Users = ({ user: currentUser, showToast }) => {
       setShowEditModal(false);
       fetchUsers();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to update user', 'error');
+      showToast(getErrorMessage(err, 'Failed to update user'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -178,7 +192,7 @@ export const Users = ({ user: currentUser, showToast }) => {
       showToast(`User status updated to ${newStatus}`, 'success');
       fetchUsers();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to update user status', 'error');
+      showToast(getErrorMessage(err, 'Failed to update user status'), 'error');
     }
   };
 
@@ -190,7 +204,7 @@ export const Users = ({ user: currentUser, showToast }) => {
       setShowDeleteModal(false);
       fetchUsers();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to deactivate user', 'error');
+      showToast(getErrorMessage(err, 'Failed to deactivate user'), 'error');
     } finally {
       setSubmitting(false);
     }
