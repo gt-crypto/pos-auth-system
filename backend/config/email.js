@@ -1,21 +1,6 @@
 import nodemailer from 'nodemailer';
 import logger from './logger.js';
 
-const hasPlaceholderSmtp = () => {
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const host = process.env.SMTP_HOST;
-
-  return (
-    !host ||
-    !user ||
-    !pass ||
-    user === 'your_mailtrap_user' ||
-    user === 'placeholder_user' ||
-    pass === 'placeholder_password'
-  );
-};
-
 // Setup mail transporter
 const getTransporter = async () => {
   const host = process.env.SMTP_HOST;
@@ -23,14 +8,11 @@ const getTransporter = async () => {
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
 
-  // If credentials are placeholders or missing, skip mail delivery and let
-  // the caller fall back to a local reset flow instead of hanging on SMTP setup.
-  if (hasPlaceholderSmtp()) {
-    logger.warn('SMTP credentials are not configured. Using local reset fallback.');
-    return null;
+  if (!host || !user || !pass) {
+    throw new Error('SMTP configuration is incomplete. Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASS.');
   }
 
-  return nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     host,
     port,
     secure: port === 465, // True for 465, false for other ports
@@ -39,6 +21,10 @@ const getTransporter = async () => {
       pass
     }
   });
+
+  await transporter.verify();
+  logger.info(`SMTP transporter verified for ${host}:${port}`);
+  return transporter;
 };
 
 export default getTransporter;

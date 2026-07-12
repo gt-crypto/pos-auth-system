@@ -341,10 +341,7 @@ export const forgotPassword = async (req, res, next) => {
     const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
 
     try {
-      const result = await sendResetPasswordEmail(user.email, user.username, resetUrl);
-      if (result?.skipped && process.env.NODE_ENV !== 'production') {
-        return sendSuccess(res, responseMsg, { resetUrl });
-      }
+      await sendResetPasswordEmail(user.email, user.username, resetUrl);
       return sendSuccess(res, responseMsg);
     } catch (err) {
       user.resetPasswordToken = undefined;
@@ -352,10 +349,7 @@ export const forgotPassword = async (req, res, next) => {
       await user.save({ validateBeforeSave: false });
       
       logger.error(`Reset password email sending failed: ${err.message}`);
-      if (process.env.NODE_ENV !== 'production') {
-        return sendSuccess(res, responseMsg, { resetUrl });
-      }
-      return sendError(res, 'Could not send reset password email. Please try again.', 500);
+      return sendError(res, 'Could not send reset password email. Please check SMTP credentials and try again.', 500);
     }
   } catch (error) {
     next(error);
