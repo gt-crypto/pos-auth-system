@@ -212,7 +212,7 @@ export const LoginRegister = () => {
 
   return (
     <div 
-      className="min-h-screen w-full flex overflow-hidden relative"
+      className="min-h-screen w-full flex overflow-x-hidden overflow-y-auto relative"
       style={{ 
         backgroundImage: `url(${posCashier})`,
         backgroundSize: 'cover',
@@ -223,7 +223,7 @@ export const LoginRegister = () => {
       
       {/* Relative container on top of background image */}
       <div 
-        className="w-full flex flex-col lg:flex-row relative z-10" 
+        className="w-full min-h-screen flex flex-col lg:flex-row relative z-10 items-start lg:items-stretch"
         onMouseMove={handleMouseMove}
       >
         
@@ -279,7 +279,7 @@ export const LoginRegister = () => {
         </div>
 
         {/* RIGHT SIDE: Card Authenticator Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 relative z-10">
+        <div className="w-full lg:w-1/2 flex items-start lg:items-center justify-center p-6 py-8 lg:py-6 relative z-10">
           <div className="w-full max-w-md">
             
             {/* Mobile Branding */}
