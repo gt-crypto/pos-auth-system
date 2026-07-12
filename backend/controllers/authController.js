@@ -259,7 +259,8 @@ export const login = async (req, res, next) => {
 
     await user.save();
 
-    await logAudit({
+    // Audit logging should not block the login response.
+    void logAudit({
       actor: user._id,
       performedByRole: user.role,
       action: 'LOGIN',

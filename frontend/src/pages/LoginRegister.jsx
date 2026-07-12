@@ -21,6 +21,7 @@ import { useToast } from '../hooks/useToast.js';
 import { checkPasswordCriteria, calculatePasswordStrength } from '../utils/passwordRules.js';
 import Input from '../components/Input.jsx';
 import Button from '../components/Button.jsx';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
 import posCashier from '../assets/pos-cashier.png';
 
@@ -55,6 +56,7 @@ export const LoginRegister = () => {
 
   const { login, forgotPassword } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   // ==========================================
   // LOGIN FORM CONFIG
@@ -76,6 +78,7 @@ export const LoginRegister = () => {
   const onLogin = async (data) => {
     try {
       await login(data.username, data.password, Boolean(data.rememberMe));
+      navigate('/dashboard', { replace: true });
       showToast('Logged in successfully!', 'success');
     } catch (err) {
       showToast(err.message || 'Invalid username or password', 'error');
