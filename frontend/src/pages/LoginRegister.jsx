@@ -197,6 +197,10 @@ export const LoginRegister = () => {
     try {
       const res = await forgotPassword(forgotEmail);
       showToast(res.message || 'Reset link sent.', 'success');
+      if (import.meta.env.DEV && res?.data?.resetUrl) {
+        window.location.href = res.data.resetUrl;
+        return;
+      }
       setShowForgotModal(false);
       setForgotEmail('');
     } catch (err) {
