@@ -19,8 +19,13 @@ const generateOrderNumber = () => {
 // ---------- Customer CRUD ----------
 
 export const createCustomer = async (body, actor, scope) => {
-  const branchId = scope?.branchId || body.branchId;
-  if (!branchId) throw { status: 400, message: 'Branch reference is required.' };
+  let branchId = scope?.branchId || body.branchId;
+  if (!branchId) {
+    // Super admin fallback: associate with the first active branch
+    const defaultBranch = await Branch.findOne({ status: 'ACTIVE' });
+    if (!defaultBranch) throw { status: 400, message: 'No active branches found to associate customer.' };
+    branchId = defaultBranch._id;
+  }
 
   // Verify branch exists
   const branch = await Branch.findById(branchId);

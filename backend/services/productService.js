@@ -62,27 +62,28 @@ const validateComboItems = async (productId, comboItems, branchId) => {
  * Creates a new Product
  */
 export const createProduct = async (productData, scope, actorId, req) => {
-  let targetBranchId = productData.branchId;
-
-  if (!scope.isSuperAdmin) {
-    targetBranchId = scope.branchId;
-  } else {
-    if (!targetBranchId) {
-      throwError('Branch ID is required for Super Admin creation');
-    }
-    const branchExists = await Branch.findById(targetBranchId);
-    if (!branchExists || branchExists.status === 'INACTIVE') {
-      throwError('Assigned branch must be active and exist', 400);
-    }
-  }
-
-  // Verify Category existence and active status
+  // Verify Category existence and active status first to extract branch context if missing
   const category = await Category.findById(productData.categoryId);
-  if (!category || category.branchId.toString() !== targetBranchId.toString()) {
-    throwError('Target category does not exist or belongs to a different branch location', 400);
+  if (!category) {
+    throwError('Target category does not exist', 400);
   }
   if (!category.isActive) {
     throwError('Cannot assign products to an inactive/archived category', 400);
+  }
+
+  let targetBranchId = scope.branchId || productData.branchId || category.branchId;
+
+  if (!targetBranchId) {
+    throwError('Branch ID is required', 400);
+  }
+
+  const branchExists = await Branch.findById(targetBranchId);
+  if (!branchExists || branchExists.status === 'INACTIVE') {
+    throwError('Assigned branch must be active and exist', 400);
+  }
+
+  if (category.branchId.toString() !== targetBranchId.toString()) {
+    throwError('Target category belongs to a different branch location', 400);
   }
 
   // Verify SKU uniqueness inside this branch

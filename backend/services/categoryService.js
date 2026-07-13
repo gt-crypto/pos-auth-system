@@ -26,11 +26,17 @@ export const createCategory = async (categoryData, scope, actorId, req) => {
     targetBranchId = scope.branchId;
   } else {
     if (!targetBranchId) {
-      throwError('Branch ID is required for Super Admin creation');
-    }
-    const branchExists = await Branch.findById(targetBranchId);
-    if (!branchExists || branchExists.status === 'INACTIVE') {
-      throwError('Assigned branch must be active and exist', 400);
+      // Fallback: use first active branch
+      const activeBranch = await Branch.findOne({ status: 'ACTIVE', isDeleted: { $ne: true } });
+      if (!activeBranch) {
+        throwError('No active branch found in the system', 400);
+      }
+      targetBranchId = activeBranch._id;
+    } else {
+      const branchExists = await Branch.findById(targetBranchId);
+      if (!branchExists || branchExists.status === 'INACTIVE') {
+        throwError('Assigned branch must be active and exist', 400);
+      }
     }
   }
 

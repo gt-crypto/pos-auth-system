@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+logs/
+verifyModules*.js
+seedDemoData.js
+Dockerfile
+docker-compose*

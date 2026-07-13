@@ -1,154 +1,74 @@
 import * as inventoryService from '../services/inventoryService.js';
-import { 
-  createInventorySchema, 
+import {
+  createInventorySchema,
   updateInventorySchema,
   restockInventorySchema,
   adjustInventorySchema,
-  transferInventorySchema 
+  transferInventorySchema
 } from '../validators/inventoryValidator.js';
-import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import { sendSuccess } from '../utils/responseHandler.js';
+import asyncHandler from '../utils/asyncHandler.js';
+import logger from '../config/logger.js';
 
-export const createInventory = async (req, res, next) => {
-  try {
-    const validatedBody = createInventorySchema.parse(req.body);
-    const inventory = await inventoryService.createInventory(validatedBody, req.scope, req.user._id, req);
-    return sendSuccess(res, 'Inventory record created successfully', { inventory }, 201);
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      const errors = err.errors.map(e => ({ field: e.path.join('.'), message: e.message }));
-      return sendError(res, 'Validation failed', 400, errors);
-    }
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+// .parse() throws ZodError on failure — the upgraded global errorMiddleware
+// catches ZodError natively so no manual catch block is needed here.
 
-export const getInventory = async (req, res, next) => {
-  try {
-    const result = await inventoryService.getInventory(req.scope, req.query);
-    return sendSuccess(res, 'Inventory retrieved successfully', result);
-  } catch (err) {
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+export const createInventory = asyncHandler(async (req, res) => {
+  const validatedBody = createInventorySchema.parse(req.body);
+  const inventory = await inventoryService.createInventory(validatedBody, req.scope, req.user._id, req);
+  logger.info(`Inventory record created by user: ${req.user.username}`);
+  return sendSuccess(res, 'Inventory record created successfully', { inventory }, 201);
+});
 
-export const getInventoryById = async (req, res, next) => {
-  try {
-    const result = await inventoryService.getInventoryById(req.params.id, req.scope);
-    return sendSuccess(res, 'Inventory details retrieved successfully', result);
-  } catch (err) {
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+export const getInventory = asyncHandler(async (req, res) => {
+  const result = await inventoryService.getInventory(req.scope, req.query);
+  return sendSuccess(res, 'Inventory retrieved successfully', result);
+});
 
-export const updateInventory = async (req, res, next) => {
-  try {
-    const validatedBody = updateInventorySchema.parse(req.body);
-    const inventory = await inventoryService.updateInventory(req.params.id, validatedBody, req.scope, req.user._id, req);
-    return sendSuccess(res, 'Inventory updated successfully', { inventory });
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      const errors = err.errors.map(e => ({ field: e.path.join('.'), message: e.message }));
-      return sendError(res, 'Validation failed', 400, errors);
-    }
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+export const getInventoryById = asyncHandler(async (req, res) => {
+  const result = await inventoryService.getInventoryById(req.params.id, req.scope);
+  return sendSuccess(res, 'Inventory details retrieved successfully', result);
+});
 
-export const restockInventory = async (req, res, next) => {
-  try {
-    const validatedBody = restockInventorySchema.parse(req.body);
-    const inventory = await inventoryService.restockInventory(validatedBody, req.scope, req.user._id, req);
-    return sendSuccess(res, 'Stock restocked successfully', { inventory });
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      const errors = err.errors.map(e => ({ field: e.path.join('.'), message: e.message }));
-      return sendError(res, 'Validation failed', 400, errors);
-    }
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+export const updateInventory = asyncHandler(async (req, res) => {
+  const validatedBody = updateInventorySchema.parse(req.body);
+  const inventory = await inventoryService.updateInventory(req.params.id, validatedBody, req.scope, req.user._id, req);
+  logger.info(`Inventory ${req.params.id} updated by user: ${req.user.username}`);
+  return sendSuccess(res, 'Inventory updated successfully', { inventory });
+});
 
-export const adjustInventory = async (req, res, next) => {
-  try {
-    const validatedBody = adjustInventorySchema.parse(req.body);
-    const inventory = await inventoryService.adjustInventory(validatedBody, req.scope, req.user._id, req);
-    return sendSuccess(res, 'Inventory stock adjusted successfully', { inventory });
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      const errors = err.errors.map(e => ({ field: e.path.join('.'), message: e.message }));
-      return sendError(res, 'Validation failed', 400, errors);
-    }
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+export const restockInventory = asyncHandler(async (req, res) => {
+  const validatedBody = restockInventorySchema.parse(req.body);
+  const inventory = await inventoryService.restockInventory(validatedBody, req.scope, req.user._id, req);
+  logger.info(`Inventory restocked by user: ${req.user.username}`);
+  return sendSuccess(res, 'Stock restocked successfully', { inventory });
+});
 
-export const transferInventory = async (req, res, next) => {
-  try {
-    const validatedBody = transferInventorySchema.parse(req.body);
-    const result = await inventoryService.transferInventory(validatedBody, req.scope, req.user._id, req);
-    return sendSuccess(res, 'Inventory transfer completed successfully', result);
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      const errors = err.errors.map(e => ({ field: e.path.join('.'), message: e.message }));
-      return sendError(res, 'Validation failed', 400, errors);
-    }
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+export const adjustInventory = asyncHandler(async (req, res) => {
+  const validatedBody = adjustInventorySchema.parse(req.body);
+  const inventory = await inventoryService.adjustInventory(validatedBody, req.scope, req.user._id, req);
+  logger.info(`Inventory stock adjusted by user: ${req.user.username}`);
+  return sendSuccess(res, 'Inventory stock adjusted successfully', { inventory });
+});
 
-export const getInventoryHistory = async (req, res, next) => {
-  try {
-    const result = await inventoryService.getInventoryHistory(req.scope, req.query);
-    return sendSuccess(res, 'Inventory history logs retrieved successfully', result);
-  } catch (err) {
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+export const transferInventory = asyncHandler(async (req, res) => {
+  const validatedBody = transferInventorySchema.parse(req.body);
+  const result = await inventoryService.transferInventory(validatedBody, req.scope, req.user._id, req);
+  logger.info(`Inventory transfer completed by user: ${req.user.username}`);
+  return sendSuccess(res, 'Inventory transfer completed successfully', result);
+});
 
-export const getLowStock = async (req, res, next) => {
-  try {
-    const lowStock = await inventoryService.getLowStock(req.scope);
-    return sendSuccess(res, 'Low-stock items retrieved successfully', { lowStock });
-  } catch (err) {
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+export const getInventoryHistory = asyncHandler(async (req, res) => {
+  const result = await inventoryService.getInventoryHistory(req.scope, req.query);
+  return sendSuccess(res, 'Inventory history logs retrieved successfully', result);
+});
 
-export const getDashboardMetrics = async (req, res, next) => {
-  try {
-    const metrics = await inventoryService.getDashboardMetrics(req.scope);
-    return sendSuccess(res, 'Dashboard metrics retrieved successfully', { metrics });
-  } catch (err) {
-    if (err.status) {
-      return sendError(res, err.message, err.status);
-    }
-    next(err);
-  }
-};
+export const getLowStock = asyncHandler(async (req, res) => {
+  const lowStock = await inventoryService.getLowStock(req.scope);
+  return sendSuccess(res, 'Low-stock items retrieved successfully', { lowStock });
+});
+
+export const getDashboardMetrics = asyncHandler(async (req, res) => {
+  const metrics = await inventoryService.getDashboardMetrics(req.scope);
+  return sendSuccess(res, 'Dashboard metrics retrieved successfully', { metrics });
+});

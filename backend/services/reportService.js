@@ -482,3 +482,65 @@ export const exportToCSV = (headers, rows) => {
   );
   return [csvHeaders, ...csvRows].join('\n');
 };
+
+// ---------- CSV Row Formatters (keep data-shaping out of controllers) ----------
+
+export const formatSalesCSV = (trend) => {
+  const headers = ['Date', 'Orders', 'Revenue', 'Discount', 'Tax', 'Net Revenue'];
+  const rows = trend.map(t => ({
+    Date: `${t._id.year}-${String(t._id.month).padStart(2, '0')}-${String(t._id.day ?? 1).padStart(2, '0')}`,
+    Orders: t.orders,
+    Revenue: t.revenue,
+    Discount: t.discount,
+    Tax: t.tax,
+    'Net Revenue': t.netRevenue
+  }));
+  return exportToCSV(headers, rows);
+};
+
+export const formatPaymentCSV = (breakdown) => {
+  const headers = ['Method', 'Count', 'Revenue', 'Percentage %'];
+  const rows = breakdown.map(p => ({
+    Method: p.method,
+    Count: p.count,
+    Revenue: p.revenue,
+    'Percentage %': p.percentage
+  }));
+  return exportToCSV(headers, rows);
+};
+
+export const formatProductCSV = (topSelling) => {
+  const headers = ['Product', 'Units Sold', 'Revenue', 'Orders'];
+  const rows = topSelling.map(p => ({
+    Product: p.name,
+    'Units Sold': p.unitsSold,
+    Revenue: p.revenue,
+    Orders: p.orderCount
+  }));
+  return exportToCSV(headers, rows);
+};
+
+export const formatCashierCSV = (cashiers) => {
+  const headers = ['Cashier', 'Orders', 'Revenue', 'Discounts', 'Avg Order'];
+  const rows = cashiers.map(c => ({
+    Cashier: c.name,
+    Orders: c.orders,
+    Revenue: c.revenue,
+    Discounts: c.discounts,
+    'Avg Order': c.avgOrderValue
+  }));
+  return exportToCSV(headers, rows);
+};
+
+export const formatLowStockCSV = (data) => {
+  const headers = ['Product', 'SKU', 'Current Stock', 'Reorder Threshold', 'Branch'];
+  const rows = data.map(p => ({
+    Product: p.productName,
+    SKU: p.sku,
+    'Current Stock': p.currentStock,
+    'Reorder Threshold': p.reorderThreshold,
+    Branch: p.branchName
+  }));
+  return exportToCSV(headers, rows);
+};
+

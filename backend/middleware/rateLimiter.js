@@ -31,3 +31,19 @@ export const forgotPasswordRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false
 });
+
+export const globalRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 150, // limit each IP to 150 requests per windowMs
+  handler: (req, res) => {
+    logger.warn(`Global rate limit exceeded for IP ${req.ip} on route ${req.originalUrl}`);
+    return sendError(
+      res,
+      'Too many requests. Please try again after 15 minutes.',
+      429
+    );
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+

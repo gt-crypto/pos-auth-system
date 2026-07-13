@@ -19,6 +19,7 @@ const paymentMethodSchema = z.object({
 });
 
 export const checkoutSchema = z.object({
+  branchId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid Branch ID').optional().nullable(),
   customerId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid Customer ID').optional().nullable(),
   customerName: z.string().trim().optional().default('Walk-in Customer'),
   customerPhone: z.string().trim().optional().default(''),
@@ -39,6 +40,7 @@ export const checkoutSchema = z.object({
 });
 
 export const holdOrderSchema = z.object({
+  branchId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid Branch ID').optional().nullable(),
   customerId: z.string().regex(/^[0-9a-fA-F]{24}$/).optional().nullable(),
   customerName: z.string().trim().optional().default('Walk-in Customer'),
   customerPhone: z.string().trim().optional().default(''),

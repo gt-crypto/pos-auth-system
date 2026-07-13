@@ -6,6 +6,7 @@ import Supplier from '../models/Supplier.js';
 import InventoryHistory from '../models/InventoryHistory.js';
 import StockTransfer from '../models/StockTransfer.js';
 import { logAudit } from '../utils/auditLogger.js';
+import logger from '../config/logger.js';
 
 const throwError = (message, status = 400) => {
   const err = new Error(message);
@@ -492,7 +493,7 @@ export const transferInventory = async (transferData, scope, actorId, req) => {
         quantity,
         transferredBy: actorId,
         status: 'APPROVED'
-      }], { session });
+      }], { session, ordered: true });
 
       await InventoryHistory.create([{
         inventoryId: sourceInv._id,
@@ -514,7 +515,7 @@ export const transferInventory = async (transferData, scope, actorId, req) => {
         notes: notes || `Stock transfer received from branch ${fromBranch}`,
         userId: actorId,
         branchId: toBranch
-      }], { session });
+      }], { session, ordered: true });
 
       await session.commitTransaction();
       committed = true;
@@ -585,7 +586,7 @@ export const transferInventory = async (transferData, scope, actorId, req) => {
           await Inventory.updateOne({ _id: destInv._id }, { $set: { quantity: prevDestQty } });
         }
       } catch (rollbackErr) {
-        console.error('CRITICAL ERROR: Rollback failed:', rollbackErr.message);
+        logger.error('CRITICAL ERROR: Rollback failed:', rollbackErr);
       }
       throwError(`Stock transfer failed: ${manualErr.message}`, 500);
     }

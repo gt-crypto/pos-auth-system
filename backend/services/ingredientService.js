@@ -5,6 +5,7 @@ import Branch from '../models/Branch.js';
 import Supplier from '../models/Supplier.js';
 import AuditLog from '../models/AuditLog.js';
 import { logAudit } from '../utils/auditLogger.js';
+import logger from '../config/logger.js';
 
 const throwError = (message, status = 400) => {
   const err = new Error(message);
@@ -46,8 +47,14 @@ export const createIngredient = async (ingredientData, scope, actorId, req) => {
 
   if (!scope.isSuperAdmin) {
     targetBranchId = scope.branchId;
+  } else if (!targetBranchId) {
+    // Super admin fallback: associate with the first active branch
+    const defaultBranch = await Branch.findOne({ status: 'ACTIVE' });
+    if (!defaultBranch) {
+      throwError('No active branches found to associate ingredient', 400);
+    }
+    targetBranchId = defaultBranch._id;
   } else {
-    if (!targetBranchId) throwError('Branch ID is required for Super Admin creation', 400);
     const branch = await Branch.findById(targetBranchId);
     if (!branch || branch.status === 'INACTIVE') throwError('Assigned branch must be active', 400);
   }
@@ -455,7 +462,7 @@ export const transferIngredient = async (transferData, scope, actorId, req) => {
         reason: reason || `Transfer from branch ID ${srcIngredient.branchId}`,
         actorId,
         user: actorId
-      }], { session });
+      }], { session, ordered: true });
 
       await session.commitTransaction();
     } catch (txErr) {
@@ -517,7 +524,7 @@ export const transferIngredient = async (transferData, scope, actorId, req) => {
           await Ingredient.updateOne({ _id: destIngredient._id }, { $set: { quantity: prevDestQty, currentStock: prevDestQty } });
         }
       } catch (rollbackErr) {
-        console.error('CRITICAL: Ingredient Rollback failed:', rollbackErr.message);
+        logger.error('CRITICAL: Ingredient Rollback failed:', rollbackErr);
       }
       throw manualErr;
     }

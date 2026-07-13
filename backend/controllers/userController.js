@@ -1,82 +1,42 @@
 import * as userService from '../services/userService.js';
 import { sendSuccess, sendError } from '../utils/responseHandler.js';
+import asyncHandler from '../utils/asyncHandler.js';
+import logger from '../config/logger.js';
 
-export const createUser = async (req, res, next) => {
-  try {
-    const user = await userService.createUser(req.validatedBody, req.user, req);
-    return sendSuccess(res, 'User created successfully', { user }, 201);
-  } catch (err) {
-    if (err.statusCode) {
-      return sendError(res, err.message, err.statusCode);
-    }
-    next(err);
-  }
-};
+export const createUser = asyncHandler(async (req, res) => {
+  const user = await userService.createUser(req.validatedBody, req.user, req);
+  logger.info(`User '${user.username}' created by admin: ${req.user.username}`);
+  return sendSuccess(res, 'User created successfully', { user }, 201);
+});
 
-export const getAllUsers = async (req, res, next) => {
-  try {
-    const users = await userService.getAllUsers(req.scope);
-    return sendSuccess(res, 'Users retrieved successfully', { users });
-  } catch (err) {
-    if (err.statusCode) {
-      return sendError(res, err.message, err.statusCode);
-    }
-    next(err);
-  }
-};
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await userService.getAllUsers(req.scope);
+  return sendSuccess(res, 'Users retrieved successfully', { users });
+});
 
-export const getMe = async (req, res, next) => {
-  try {
-    return sendSuccess(res, 'Session profile retrieved', { user: req.user });
-  } catch (err) {
-    next(err);
-  }
-};
+export const getMe = asyncHandler(async (req, res) => {
+  return sendSuccess(res, 'Session profile retrieved', { user: req.user });
+});
 
-export const getUserById = async (req, res, next) => {
-  try {
-    const user = await userService.getUserById(req.params.id, req.scope);
-    return sendSuccess(res, 'User details retrieved successfully', { user });
-  } catch (err) {
-    if (err.statusCode) {
-      return sendError(res, err.message, err.statusCode);
-    }
-    next(err);
-  }
-};
+export const getUserById = asyncHandler(async (req, res) => {
+  const user = await userService.getUserById(req.params.id, req.scope);
+  return sendSuccess(res, 'User details retrieved successfully', { user });
+});
 
-export const updateUser = async (req, res, next) => {
-  try {
-    const updatedUser = await userService.updateUser(req.params.id, req.validatedBody, req.user, req);
-    return sendSuccess(res, 'User updated successfully', { user: updatedUser });
-  } catch (err) {
-    if (err.statusCode) {
-      return sendError(res, err.message, err.statusCode);
-    }
-    next(err);
-  }
-};
+export const updateUser = asyncHandler(async (req, res) => {
+  const updatedUser = await userService.updateUser(req.params.id, req.validatedBody, req.user, req);
+  logger.info(`User '${updatedUser.username}' updated by admin: ${req.user.username}`);
+  return sendSuccess(res, 'User updated successfully', { user: updatedUser });
+});
 
-export const updateUserStatus = async (req, res, next) => {
-  try {
-    const updatedUser = await userService.updateUserStatus(req.params.id, req.validatedBody.status, req.user, req);
-    return sendSuccess(res, 'User status updated successfully', { user: updatedUser });
-  } catch (err) {
-    if (err.statusCode) {
-      return sendError(res, err.message, err.statusCode);
-    }
-    next(err);
-  }
-};
+export const updateUserStatus = asyncHandler(async (req, res) => {
+  const updatedUser = await userService.updateUserStatus(req.params.id, req.validatedBody.status, req.user, req);
+  logger.info(`User '${updatedUser.username}' status set to '${updatedUser.status}' by admin: ${req.user.username}`);
+  return sendSuccess(res, 'User status updated successfully', { user: updatedUser });
+});
 
-export const deactivateUser = async (req, res, next) => {
-  try {
-    const updatedUser = await userService.deactivateUser(req.params.id, req.user, req);
-    return sendSuccess(res, 'User deactivated (soft-deleted) successfully', { user: updatedUser });
-  } catch (err) {
-    if (err.statusCode) {
-      return sendError(res, err.message, err.statusCode);
-    }
-    next(err);
-  }
-};
+export const deactivateUser = asyncHandler(async (req, res) => {
+  const updatedUser = await userService.deactivateUser(req.params.id, req.user, req);
+  logger.info(`User '${updatedUser.username}' deactivated by admin: ${req.user.username}`);
+  return sendSuccess(res, 'User deactivated (soft-deleted) successfully', { user: updatedUser });
+});

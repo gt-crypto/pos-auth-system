@@ -6,6 +6,7 @@ import Inventory from '../models/Inventory.js';
 import InventoryHistory from '../models/InventoryHistory.js';
 import Customer from '../models/Customer.js';
 import { logAudit } from '../utils/auditLogger.js';
+import logger from '../config/logger.js';
 
 const throwError = (message, status = 400) => {
   const err = new Error(message);
@@ -289,7 +290,7 @@ export const checkoutCart = async (checkoutData, scope, actorId, req) => {
           });
         }
       } catch (rollbackErr) {
-        console.error('CRITICAL: Manual Rollback failed:', rollbackErr.message);
+        logger.error('CRITICAL: Manual Rollback failed:', rollbackErr);
       }
       throw manualErr;
     }
@@ -397,6 +398,7 @@ export const splitOrder = async (splitData, scope, actorId, req) => {
     
     // Process checkout for this sub-bill
     const checkoutResult = await checkoutCart({
+      branchId: parentOrder.branchId,
       customerId: parentOrder.customerId,
       customerName: parentOrder.customerName,
       customerPhone: parentOrder.customerPhone,

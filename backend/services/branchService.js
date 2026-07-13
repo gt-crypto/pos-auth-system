@@ -1,12 +1,5 @@
 import Branch from '../models/Branch.js';
-
-export class AppError extends Error {
-  constructor(message, statusCode) {
-    super(message);
-    this.statusCode = statusCode;
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
+import AppError from '../utils/AppError.js';
 
 export const createBranch = async (data, actorId) => {
   const code = data.branchCode.trim().toUpperCase();

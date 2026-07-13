@@ -31,6 +31,7 @@ export const Input = forwardRef(({
           id={id}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? errorId : undefined}
+          autoComplete="off"
           className={`w-full px-4 py-3 rounded-xl border glass-input text-sm text-slate-900 placeholder-slate-400 font-medium ${
             error 
               ? 'border-rose-500/50 focus:border-rose-500 focus:ring-rose-500/20' 

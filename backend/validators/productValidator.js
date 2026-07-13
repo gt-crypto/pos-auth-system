@@ -11,6 +11,7 @@ const variantSchema = z.object({
 });
 
 const productBaseSchema = z.object({
+  branchId: z.string().regex(objectIdRegex, 'Invalid Branch ID').optional().nullable(),
   categoryId: z.string().regex(objectIdRegex, 'Invalid Category ID'),
   name: z.string()
     .trim()

@@ -1,7 +1,8 @@
 import User from '../models/User.js';
 import Branch from '../models/Branch.js';
 import { ROLES } from '../constants/roles.js';
-import { AppError } from './branchService.js';
+import AppError from '../utils/AppError.js';
+
 import { logAudit } from '../utils/auditLogger.js';
 
 export const createUser = async (data, actorUser, req) => {

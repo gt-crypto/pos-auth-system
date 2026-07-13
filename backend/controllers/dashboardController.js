@@ -1,23 +1,21 @@
 import { sendSuccess } from '../utils/responseHandler.js';
 import { ROLE_PERMISSIONS } from '../config/rolePermissions.js';
-import Branch from '../models/Branch.js';
+import { getBranchById } from '../services/branchService.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
-export const getDashboardMe = async (req, res, next) => {
-  try {
-    const role = req.user.role;
-    const permissions = ROLE_PERMISSIONS[role] || [];
-    
-    let branchDetails = null;
-    if (req.user.branchId) {
-      branchDetails = await Branch.findOne({ _id: req.user.branchId, isDeleted: false });
-    }
+// Branch lookup is now delegated to branchService — no raw DB calls in controllers.
 
-    return sendSuccess(res, 'Dashboard summary details retrieved successfully', {
-      role,
-      permissions,
-      branch: branchDetails
-    });
-  } catch (err) {
-    next(err);
-  }
-};
+export const getDashboardMe = asyncHandler(async (req, res) => {
+  const { role, branchId } = req.user;
+  const permissions = ROLE_PERMISSIONS[role] ?? [];
+
+  const branch = branchId
+    ? await getBranchById(branchId, { isSuperAdmin: false, branchId })
+    : null;
+
+  return sendSuccess(res, 'Dashboard summary details retrieved successfully', {
+    role,
+    permissions,
+    branch
+  });
+});
