@@ -539,7 +539,7 @@ export const approveUser = async (req, res, next) => {
       return sendError(res, 'Admins are only authorized to approve Cashier accounts.', 403);
     }
 
-    targetUser.status = 'APPROVED';
+    targetUser.status = 'ACTIVE';
     targetUser.approvedBy = req.user._id;
     targetUser.approvedAt = new Date();
     targetUser.rejectedBy = null; // clear any rejection log if approving
@@ -573,7 +573,7 @@ export const rejectUser = async (req, res, next) => {
       return sendError(res, 'Admins are only authorized to reject Cashier accounts.', 403);
     }
 
-    targetUser.status = 'REJECTED';
+    targetUser.status = 'INACTIVE';
     targetUser.rejectedBy = req.user._id;
     targetUser.rejectedAt = new Date();
     targetUser.approvedBy = null; // clear approval logs
@@ -614,7 +614,7 @@ export const changeUserRole = async (req, res, next) => {
 
     // Last Super Admin Protection check
     if (targetUser.role === ROLES.SUPER_ADMIN && newRole !== ROLES.SUPER_ADMIN) {
-      const activeSuperAdminCount = await User.countDocuments({ role: ROLES.SUPER_ADMIN, status: 'APPROVED' });
+      const activeSuperAdminCount = await User.countDocuments({ role: ROLES.SUPER_ADMIN, status: 'ACTIVE' });
       if (activeSuperAdminCount <= 1) {
         return sendError(res, 'Cannot demote the last remaining Super Admin.', 400);
       }
@@ -659,7 +659,7 @@ export const deleteUser = async (req, res, next) => {
 
     // Last Super Admin Protection check
     if (targetUser.role === ROLES.SUPER_ADMIN) {
-      const activeSuperAdminCount = await User.countDocuments({ role: ROLES.SUPER_ADMIN, status: 'APPROVED' });
+      const activeSuperAdminCount = await User.countDocuments({ role: ROLES.SUPER_ADMIN, status: 'ACTIVE' });
       if (activeSuperAdminCount <= 1) {
         return sendError(res, 'Cannot delete the last remaining Super Admin.', 400);
       }

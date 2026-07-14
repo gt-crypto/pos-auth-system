@@ -1,37 +1,142 @@
 # POS & Inventory Authentication System
 
-A production-ready Node.js + Express + MongoDB backend and frontend interface.
-
-## Prerequisites
-- Node.js (v20+)
-- MongoDB (Running locally or via cloud)
-- Docker & Docker Compose (Optional, for containerized execution)
+A production-ready Multi-Branch Point of Sale (POS) and Inventory management platform built using Node.js, Express, MongoDB, and React.
 
 ---
 
-## Required Environment Variables
-Configure these in a `.env` file under the `/backend` folder. See `backend/.env.example` for details:
-
-| Name | Required | Description | Default |
-| --- | --- | --- | --- |
-| `PORT` | Yes | Port for the Express server to listen on | `5000` |
-| `MONGO_URI` | Yes | MongoDB Connection string (Atlas or Local) | - |
-| `JWT_SECRET` | Yes | Secret key used to sign JWT authentication tokens | - |
-| `JWT_EXPIRE` | No | JWT token expiry duration | `24h` |
-| `COOKIE_EXPIRE` | No | Cookie expiry duration (in hours) | `24` |
-| `CLIENT_URL` | No | Frontend URL for CORS mapping (comma-separated if multiple)| `http://localhost:5173` |
-| `NODE_ENV` | No | Deployment environment (`development`, `production`, `test`) | `development` |
+[![Node.js Version](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org/)
+[![React Version](https://img.shields.io/badge/React-v18+-blue.svg)](https://react.dev/)
+[![MongoDB Version](https://img.shields.io/badge/MongoDB-v6.0+-darkgreen.svg)](https://www.mongodb.com/)
+[![Docker Compose](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 
 ---
 
-## Getting Started Locally
+## 📖 Table of Contents
+1. [Overview](#-overview)
+2. [Document Directory Quick Links](#-document-directory-quick-links)
+3. [Key Features Matrix](#-key-features-matrix)
+4. [Technology Stack](#-technology-stack)
+5. [Architecture Flow](#-architecture-flow)
+6. [Screenshots](#-screenshots)
+7. [Directory Structure](#-directory-structure)
+8. [Getting Started Locally](#-getting-started-locally)
+9. [Running with Docker Compose](#-running-with-docker-compose)
+10. [Observability & Health Checks](#-observability--health-checks)
+11. [License](#-license)
+
+---
+
+## 🔍 Overview
+The **POS & Inventory Authentication System** provides businesses with a central database to manage retail branch locations, catalog products, track real-time stock levels, check out customers, and log administrative security audits. With a multi-layered Role-Based Access Control (RBAC) permission structure and strict multi-branch data isolation, it offers enterprise-grade security and transparency.
+
+---
+
+## 📂 Document Directory Quick Links
+
+We have generated comprehensive, production-grade documentation for this system:
+
+- 📋 **[Product Requirements Document (PRD.md)](file:///c:/Users/achu1/.gemini/antigravity/scratch/pos-auth-system/PRD.md)**: Product scope, target user definitions, functional/non-functional requirements, edge case documentation, and the **Requirement Traceability Matrix**.
+- 🏗️ **[Architecture Design Document (ARCHITECTURE.md)](file:///c:/Users/achu1/.gemini/antigravity/scratch/pos-auth-system/ARCHITECTURE.md)**: System design patterns, database schemas, indexes, collections description, custom transaction flow charts, and future scaling strategies.
+- 🔌 **[REST API Reference Guide (API_DOCUMENTATION.md)](file:///c:/Users/achu1/.gemini/antigravity/scratch/pos-auth-system/API_DOCUMENTATION.md)**: Granular documentation of all endpoints, request bodies, query strings, headers, and success/error payload examples.
+- 🚀 **[Deployment and Testing Manual (DEPLOYMENT.md)](file:///c:/Users/achu1/.gemini/antigravity/scratch/pos-auth-system/DEPLOYMENT.md)**: Server configurations, Docker Compose guidelines, Render/Vercel guides, and manual testing checklists.
+
+---
+
+## 📊 Key Features Matrix
+
+| Module | Super Admin | Admin | Cashier | Status |
+| :--- | :---: | :---: | :---: | :---: |
+| **Authentication & Lockout** | ✓ | ✓ | ✓ | **Implemented** |
+| **User approvals** | ✓ | ✗ | ✗ | **Implemented** |
+| **Branch Outlets CRUD** | ✓ | ✗ | ✗ | **Implemented** |
+| **Category/Product Catalog** | ✓ | ✓ | Read-Only | **Implemented** |
+| **Branch Inventory Stock** | ✓ | ✓ | ✗ | **Implemented** |
+| **Inter-Branch Transfers** | ✓ | ✓ | ✗ | **Implemented** |
+| **POS Billing & Checkout** | ✓ | ✓ | ✓ | **Implemented** |
+| **Split & Hold Bills** | ✓ | ✓ | ✓ | **Implemented** |
+| **Kitchen Ingredients** | ✓ | ✓ | Override* | **Implemented** |
+| **Analytical Reports** | ✓ | ✓ | ✗ | **Implemented** |
+| **Immutable Audit Logs** | ✓ | ✗ | ✗ | **Implemented** |
+
+*\*Access for Cashier role requires setting `hasIngredientsAccess === true`.*
+
+---
+
+## 🛠️ Technology Stack
+
+### Backend Server
+- **Core Engine**: Node.js & Express.
+- **Data Modeling**: Mongoose & MongoDB.
+- **Security Middlewares**: `helmet` (hardened HTTP headers), `express-mongo-sanitize` (SQL/NoSQL injection protection), `hpp` (parameter pollution protection).
+- **Throttling**: `express-rate-limit`.
+- **Validations**: `zod`.
+- **Log Management**: Winston structured console & file archives.
+
+### Frontend Client
+- **Framework**: React (Vite-bundler).
+- **State Engines**: React Context API.
+- **Animations**: Framer Motion.
+- **Icons Library**: Lucide React.
+- **Client Networking**: Axios (custom instance with HttpOnly session cookies management).
+
+---
+
+## 📐 Architecture Flow
+```
+[Client App] 
+     │ (HTTPS Requests + Session Cookie)
+     ▼
+[Express Server] ──> [Security/Auth Middlewares] ──> [Zod Validation]
+     │                                                     │
+     ▼                                                     ▼
+[Controllers/Services] ──────────────────────────> [MongoDB Database]
+```
+
+For detailed class diagrams, database relationships, and request timelines, check **[ARCHITECTURE.md](file:///c:/Users/achu1/.gemini/antigravity/scratch/pos-auth-system/ARCHITECTURE.md)**.
+
+---
+
+## 📸 Screenshots
+*(Place actual system screenshots here during production deployments)*
+
+### 1. POS Checkout Screen
+![POS Checkout Placeholder](https://via.placeholder.com/800x450.png?text=POS+Billing+Checkout+Dashboard+Mockup)
+
+### 2. Multi-Branch Analytics Reports
+![Reports Dashboard Placeholder](https://via.placeholder.com/800x450.png?text=Analytical+Reports+with+CSV+Export)
+
+---
+
+## 🌲 Directory Structure
+
+```
+├── backend/
+│   ├── config/             # DB & Winston configs
+│   ├── constants/          # Static role IDs & blacklists
+│   ├── controllers/        # Express handlers
+│   ├── middleware/         # Auth, RBAC & security filters
+│   ├── models/             # Mongoose database models
+│   ├── routes/             # API routing mappings
+│   ├── services/           # Business logic layer
+│   └── validators/         # Input parsing schemas (Zod)
+└── frontend/
+    └── src/
+        ├── components/     # Routing guards & reusable inputs
+        ├── context/        # React global state containers
+        ├── pages/          # Multi-tab view layouts
+        └── services/       # Network client API
+```
+
+---
+
+## ⚡ Getting Started Locally
 
 ### 1. Database & Backend Setup
 1. Navigate to the backend directory:
    ```bash
    cd backend
    ```
-2. Install dependencies (we reuse the existing production packages without duplicates):
+2. Install dependencies:
    ```bash
    npm install
    ```
@@ -40,48 +145,61 @@ Configure these in a `.env` file under the `/backend` folder. See `backend/.env.
    cp .env.example .env
    ```
    *(Ensure you update `MONGO_URI` and `JWT_SECRET` in `.env`)*
-
-4. Seed the demo data (optional):
+4. Seed the demo data:
    ```bash
    npm run seed:demo
    ```
-
 5. Run in development mode:
    ```bash
    npm run dev
    ```
-
 6. Run in production mode:
    ```bash
    npm start
    ```
 
+### 2. Frontend Client Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd ../frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+   *(Open `http://localhost:5173` in your browser)*
+
 ---
 
-## Running with Docker
+## 🐳 Running with Docker Compose
 
-To simplify setup, you can launch the database and backend using Docker Compose.
+To run the application inside isolated Docker containers (MongoDB + Backend API):
 
-### Build and Launch Containers
-From the root directory, you can build and run using:
-```bash
-docker compose up --build -d
-```
-Alternatively, from the `backend/` directory, you can use the npm scripts defined in `package.json`:
-- Build image: `npm run docker:build`
-- Start containers: `npm run docker:up`
-- Stop containers: `npm run docker:down`
+1. From the root directory:
+   ```bash
+   docker compose up --build -d
+   ```
+2. Check logs:
+   ```bash
+   docker compose logs -f
+   ```
+3. Stop containers:
+   ```bash
+   docker compose down
+   ```
 
 ---
 
-## Observability & Health Check
+## 📊 Observability & Health Checks
 
 ### Health Check Endpoint
-The service features a production-ready health check endpoint mapping database connection status, memory allocation, environment settings, uptime, and system versioning:
-
-- **Endpoint**: `GET http://localhost:5000/api/health`
-- **Rate Limiting**: Excluded from global API rate limit constraints.
-- **Example Response**:
+To inspect server uptime and database connectivity:
+- **Endpoint**: `GET /api/health`
+- **Response Format**:
   ```json
   {
     "status": "UP",
@@ -94,12 +212,17 @@ The service features a production-ready health check endpoint mapping database c
       "heapUsed": 10564880,
       "external": 1289112
     },
-    "timestamp": "2026-07-13T16:00:00.000Z",
+    "timestamp": "2026-07-14T05:40:00.000Z",
     "environment": "production"
   }
   ```
 
-### Structured Logging
-All application logs (startup status, incoming requests, graceful shutdowns, and database states) are written in structured format using Winston:
-- Logs are written to stdout/stderr in a format optimized for container platforms.
-- Locally, logs are also archived inside `backend/logs/combined.log` and `backend/logs/error.log`.
+### Logging
+All backend logs are formatted in JSON and written:
+- Output to console (`stdout`/`stderr`).
+- Written to local files at `backend/logs/combined.log` and `backend/logs/error.log` (excluded from git tracking).
+
+---
+
+## 📄 License
+This project is licensed under the MIT License - see local terms for details.
