@@ -21,7 +21,7 @@ import Button from '../../components/Button.jsx';
 import Input from '../../components/Input.jsx';
 
 export const Inventory = ({ user, showToast }) => {
-  const [activeTab, setActiveTab] = useState('GRID'); // GRID or LEDGER
+  const [activeTab, setActiveTab] = useState('GRID'); // GRID, LEDGER, or TRANSFERS
   const [loading, setLoading] = useState(true);
   const [inventories, setInventories] = useState([]);
   const [historyLogs, setHistoryLogs] = useState([]);
@@ -57,6 +57,16 @@ export const Inventory = ({ user, showToast }) => {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyLimit, setHistoryLimit] = useState(10);
   const [historyPaginationInfo, setHistoryPaginationInfo] = useState({
+    totalRecords: 0,
+    totalPages: 1,
+    hasNext: false,
+    hasPrevious: false
+  });
+
+  // Transfer History
+  const [transferLogs, setTransferLogs] = useState([]);
+  const [transferPage, setTransferPage] = useState(1);
+  const [transferPaginationInfo, setTransferPaginationInfo] = useState({
     totalRecords: 0,
     totalPages: 1,
     hasNext: false,
@@ -135,6 +145,13 @@ export const Inventory = ({ user, showToast }) => {
     }
   }, [activeTab, historyPage, historyLimit, selectedBranch]);
 
+  // Sync Transfer History
+  useEffect(() => {
+    if (activeTab === 'TRANSFERS') {
+      fetchTransferLogs();
+    }
+  }, [activeTab, transferPage, selectedBranch]);
+
   const fetchPrerequisites = async () => {
     try {
       // Branches
@@ -200,6 +217,21 @@ export const Inventory = ({ user, showToast }) => {
       setHistoryPaginationInfo(res.data.data.pagination);
     } catch (err) {
       showToast('Failed to load movement logs', 'error');
+    }
+  };
+
+  const fetchTransferLogs = async () => {
+    try {
+      const params = {
+        branchId: selectedBranch,
+        page: transferPage,
+        limit: 10
+      };
+      const res = await api.get('/inventory/transfers', { params });
+      setTransferLogs(res.data.data.transfers || []);
+      setTransferPaginationInfo(res.data.data.pagination);
+    } catch (err) {
+      showToast('Failed to load transfer history', 'error');
     }
   };
 
@@ -357,10 +389,10 @@ export const Inventory = ({ user, showToast }) => {
       </header>
 
       {/* Tab select bar */}
-      <div className="flex border-b border-slate-200 select-none">
+      <div className="flex border-b border-slate-200 select-none overflow-x-auto">
         <button
           onClick={() => setActiveTab('GRID')}
-          className={`py-3 px-6 font-bold text-xs uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+          className={`py-3 px-6 font-bold text-xs uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'GRID'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -370,7 +402,7 @@ export const Inventory = ({ user, showToast }) => {
         </button>
         <button
           onClick={() => setActiveTab('LEDGER')}
-          className={`py-3 px-6 font-bold text-xs uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+          className={`py-3 px-6 font-bold text-xs uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'LEDGER'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -378,6 +410,18 @@ export const Inventory = ({ user, showToast }) => {
         >
           <FileText className="h-4 w-4" /> History Ledger
         </button>
+        {user?.role !== 'CASHIER' && (
+          <button
+            onClick={() => setActiveTab('TRANSFERS')}
+            className={`py-3 px-6 font-bold text-xs uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'TRANSFERS'
+                ? 'border-violet-600 text-violet-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <ArrowLeftRight className="h-4 w-4" /> Transfer History
+          </button>
+        )}
       </div>
 
       {activeTab === 'GRID' ? (
@@ -710,6 +754,104 @@ export const Inventory = ({ user, showToast }) => {
                 Previous
               </Button>
               <Button disabled={!historyPaginationInfo.hasNext} onClick={() => setHistoryPage(p => p + 1)} className="!py-1.5 text-xs">
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TRANSFER HISTORY TAB ─────────────────────────────── */}
+      {activeTab === 'TRANSFERS' && (
+        <div className="flex flex-col gap-5">
+
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Stock Transfer History</h2>
+              <p className="text-xs text-slate-500 mt-0.5">All cross-branch stock transfer records, newest first.</p>
+            </div>
+            <Button onClick={() => openTransferModal(null)} className="flex items-center gap-2">
+              <ArrowLeftRight className="h-4 w-4" /> New Transfer
+            </Button>
+          </div>
+
+          {transferLogs.length === 0 ? (
+            <div className="glass-card rounded-2xl p-12 border border-slate-200/80 text-center text-slate-400">
+              No transfer records found.
+            </div>
+          ) : (
+            <div className="overflow-x-auto w-full glass-card rounded-2xl border border-slate-200/80 shadow-md">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="p-4 pl-6">Product</th>
+                    <th className="p-4">From Branch</th>
+                    <th className="p-4">To Branch</th>
+                    <th className="p-4 text-center">Qty Transferred</th>
+                    <th className="p-4">Transferred By</th>
+                    <th className="p-4 text-center">Status</th>
+                    <th className="p-4 pr-6">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700 bg-white/40">
+                  {transferLogs.map((t) => (
+                    <tr key={t._id} className="hover:bg-slate-50/40 transition-colors">
+                      <td className="p-4 pl-6">
+                        <div>
+                          <span className="font-bold text-slate-900 block">{t.productId?.name || '—'}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">SKU: {t.productId?.sku}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="flex items-center gap-1.5 text-slate-700">
+                          <span className="h-5 w-5 rounded-md bg-rose-50 text-rose-500 flex items-center justify-center text-[9px] font-black shrink-0">OUT</span>
+                          {t.fromBranch?.name || '—'}
+                          {t.fromBranch?.branchCode && <span className="text-slate-400 font-mono ml-1">({t.fromBranch.branchCode})</span>}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="flex items-center gap-1.5 text-slate-700">
+                          <span className="h-5 w-5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center text-[9px] font-black shrink-0">IN</span>
+                          {t.toBranch?.name || '—'}
+                          {t.toBranch?.branchCode && <span className="text-slate-400 font-mono ml-1">({t.toBranch.branchCode})</span>}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className="text-sm font-black text-violet-700">{t.quantity}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-slate-700">{t.transferredBy?.name || t.transferredBy?.username || '—'}</span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold border uppercase ${
+                          t.status === 'APPROVED'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : t.status === 'PENDING'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                        }`}>
+                          {t.status}
+                        </span>
+                      </td>
+                      <td className="p-4 pr-6 text-slate-500 whitespace-nowrap">
+                        {new Date(t.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs font-semibold text-slate-500">
+              Showing page {transferPage} of {transferPaginationInfo.totalPages || 1} ({transferPaginationInfo.totalRecords} transfers)
+            </span>
+            <div className="flex gap-2">
+              <Button variant="secondary" disabled={!transferPaginationInfo.hasPrevious} onClick={() => setTransferPage(p => p - 1)} className="!py-1.5 text-xs">
+                Previous
+              </Button>
+              <Button disabled={!transferPaginationInfo.hasNext} onClick={() => setTransferPage(p => p + 1)} className="!py-1.5 text-xs">
                 Next
               </Button>
             </div>

@@ -382,7 +382,7 @@ const ProductsTab = ({ data, loading, onExport, exporting }) => {
 
 // ─── Inventory Tab ────────────────────────────────────────────────────────────
 
-const InventoryTab = ({ data, loading }) => {
+const InventoryTab = ({ data, loading, onExport, exporting }) => {
   if (loading) return <LoadingBlock />;
   if (!data) return <EmptyBlock />;
 
@@ -393,7 +393,7 @@ const InventoryTab = ({ data, loading }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <SectionHeader title="Inventory Report" desc="Current stock levels across all products" />
+      <SectionHeader title="Inventory Report" desc="Current stock levels across all products" onExport={onExport} exporting={exporting} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard icon={Package} label="Total Items" value={fmtNum(data.totalItems)} color="blue" />
         <KPICard icon={Activity} label="In Stock" value={fmtNum(data.inStock)} color="emerald" />
@@ -489,7 +489,7 @@ const CashiersTab = ({ data, loading, onExport, exporting }) => {
 
 // ─── Branches Tab ─────────────────────────────────────────────────────────────
 
-const BranchesTab = ({ data, loading }) => {
+const BranchesTab = ({ data, loading, onExport, exporting }) => {
   if (loading) return <LoadingBlock />;
   if (!data || !data.branches?.length) return <EmptyBlock msg="No branch activity for this period." />;
 
@@ -500,7 +500,7 @@ const BranchesTab = ({ data, loading }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <SectionHeader title="Branch Report" desc="Cross-branch performance comparison" />
+      <SectionHeader title="Branch Report" desc="Cross-branch performance comparison" onExport={onExport} exporting={exporting} />
       <ChartCard title="Revenue by Branch">
         <div style={{ height: 250 }}><Bar data={barData} options={CHART_DEFAULTS} /></div>
       </ChartCard>
@@ -533,7 +533,7 @@ const BranchesTab = ({ data, loading }) => {
 
 // ─── Customer Analytics Tab ───────────────────────────────────────────────────
 
-const CustomerAnalyticsTab = ({ data, loading }) => {
+const CustomerAnalyticsTab = ({ data, loading, onExport, exporting }) => {
   if (loading) return <LoadingBlock />;
   if (!data) return <EmptyBlock />;
 
@@ -544,7 +544,7 @@ const CustomerAnalyticsTab = ({ data, loading }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <SectionHeader title="Customer Analytics" desc="Acquisition, retention, and spending behavior" />
+      <SectionHeader title="Customer Analytics" desc="Acquisition, retention, and spending behavior" onExport={onExport} exporting={exporting} />
       <div className="grid grid-cols-2 gap-4">
         <KPICard icon={UserCheck} label="New Customers" value={fmtNum(data.newCustomers)} color="blue" />
         <KPICard icon={Users} label="Returning Customers" value={fmtNum(data.returningCustomers)} color="emerald" />
@@ -704,11 +704,11 @@ export const Reports = ({ user, showToast }) => {
           {activeTab === 'sales' && <SalesTab data={data} loading={loading} onExport={handleExport} exporting={exporting} />}
           {activeTab === 'payment' && <PaymentTab data={data} loading={loading} onExport={handleExport} exporting={exporting} />}
           {activeTab === 'products' && <ProductsTab data={data} loading={loading} onExport={handleExport} exporting={exporting} />}
-          {activeTab === 'inventory' && <InventoryTab data={data} loading={loading} />}
+          {activeTab === 'inventory' && <InventoryTab data={data} loading={loading} onExport={handleExport} exporting={exporting} />}
           {activeTab === 'low_stock' && <LowStockTab data={data} loading={loading} onExport={handleExport} exporting={exporting} />}
           {activeTab === 'cashiers' && <CashiersTab data={data} loading={loading} onExport={handleExport} exporting={exporting} />}
-          {activeTab === 'branches' && <BranchesTab data={data} loading={loading} />}
-          {activeTab === 'customers' && <CustomerAnalyticsTab data={data} loading={loading} />}
+          {activeTab === 'branches' && <BranchesTab data={data} loading={loading} onExport={handleExport} exporting={exporting} />}
+          {activeTab === 'customers' && <CustomerAnalyticsTab data={data} loading={loading} onExport={handleExport} exporting={exporting} />}
         </motion.div>
       </AnimatePresence>
     </div>

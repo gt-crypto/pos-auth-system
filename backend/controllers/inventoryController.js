@@ -10,6 +10,7 @@ import { sendSuccess } from '../utils/responseHandler.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import logger from '../config/logger.js';
 
+
 // .parse() throws ZodError on failure — the upgraded global errorMiddleware
 // catches ZodError natively so no manual catch block is needed here.
 
@@ -71,4 +72,9 @@ export const getLowStock = asyncHandler(async (req, res) => {
 export const getDashboardMetrics = asyncHandler(async (req, res) => {
   const metrics = await inventoryService.getDashboardMetrics(req.scope);
   return sendSuccess(res, 'Dashboard metrics retrieved successfully', { metrics });
+});
+
+export const getTransferHistory = asyncHandler(async (req, res) => {
+  const result = await inventoryService.getTransferHistory(req.scope, req.query);
+  return sendSuccess(res, 'Transfer history retrieved successfully', result);
 });

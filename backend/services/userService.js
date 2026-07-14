@@ -315,3 +315,68 @@ export const deactivateUser = async (id, actorUser, req) => {
 
   return user;
 };
+
+// ─── User Approval Flow ────────────────────────────────────────────────────────
+
+export const getPendingUsers = async () => {
+  return await User.find({ status: 'PENDING', isDeleted: false })
+    .select('-password')
+    .populate('branchId', 'name branchCode')
+    .sort({ createdAt: -1 });
+};
+
+export const approveUser = async (id, actorUser, req) => {
+  const user = await User.findOne({ _id: id, isDeleted: false });
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  if (user.status !== 'PENDING') {
+    throw new AppError(`User is already ${user.status.toLowerCase()} — cannot approve`, 400);
+  }
+
+  user.status = 'ACTIVE';
+  user.approvedBy = actorUser._id;
+  user.approvedAt = new Date();
+  await user.save();
+
+  await logAudit({
+    actor: actorUser._id,
+    action: 'APPROVE_USER',
+    entityType: 'User',
+    entityId: user._id,
+    branchId: user.branchId || null,
+    metadata: { username: user.username, role: user.role },
+    req
+  });
+
+  return user;
+};
+
+export const rejectUser = async (id, actorUser, req) => {
+  const user = await User.findOne({ _id: id, isDeleted: false });
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  if (user.status !== 'PENDING') {
+    throw new AppError(`User is already ${user.status.toLowerCase()} — cannot reject`, 400);
+  }
+
+  user.status = 'INACTIVE';
+  user.rejectedBy = actorUser._id;
+  user.rejectedAt = new Date();
+  await user.save();
+
+  await logAudit({
+    actor: actorUser._id,
+    action: 'REJECT_USER',
+    entityType: 'User',
+    entityId: user._id,
+    branchId: user.branchId || null,
+    metadata: { username: user.username, role: user.role },
+    req
+  });
+
+  return user;
+};

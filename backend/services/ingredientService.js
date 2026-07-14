@@ -396,6 +396,12 @@ export const transferIngredient = async (transferData, scope, actorId, req) => {
     throwError(`Transfer quantity exceeds available stock. Available: ${srcIngredient.quantity} ${srcIngredient.unit}`, 400);
   }
 
+  // Verify destination branch exists and is active
+  const destBranch = await Branch.findOne({ _id: toBranchId, isDeleted: false });
+  if (!destBranch || destBranch.status === 'INACTIVE') {
+    throwError('Destination branch must be active and exist', 400);
+  }
+
   // Find or create target ingredient on destination branch
   let destIngredient = await Ingredient.findOne({ branchId: toBranchId, name: srcIngredient.name });
   const createdDest = !destIngredient;
@@ -473,7 +479,9 @@ export const transferIngredient = async (transferData, scope, actorId, req) => {
     }
   } catch (err) {
     const isReplicaSetError = err.message.includes('replica set') || err.message.includes('Transaction numbers');
-    if (!isReplicaSetError) throw err;
+    if (!isReplicaSetError) {
+      throwError(`Database transfer transaction aborted: ${err.message}`, 500);
+    }
 
     // FALLBACK
     try {

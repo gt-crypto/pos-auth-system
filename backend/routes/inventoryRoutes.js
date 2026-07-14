@@ -15,6 +15,7 @@ router.post('/', hasPermission(PERMISSIONS.CREATE_INVENTORY), inventoryControlle
 router.get('/', hasPermission(PERMISSIONS.READ_INVENTORY), inventoryController.getInventory);
 router.get('/low-stock', hasPermission(PERMISSIONS.READ_INVENTORY), inventoryController.getLowStock);
 router.get('/history', hasPermission(PERMISSIONS.READ_INVENTORY_HISTORY), inventoryController.getInventoryHistory);
+router.get('/transfers', hasPermission(PERMISSIONS.READ_INVENTORY_HISTORY), inventoryController.getTransferHistory);
 router.get('/metrics', hasPermission(PERMISSIONS.READ_INVENTORY), inventoryController.getDashboardMetrics);
 router.get('/:id', hasPermission(PERMISSIONS.READ_INVENTORY), inventoryController.getInventoryById);
 router.put('/:id', hasPermission(PERMISSIONS.UPDATE_INVENTORY), inventoryController.updateInventory);
@@ -23,3 +24,4 @@ router.post('/adjust', hasPermission(PERMISSIONS.ADJUST_INVENTORY), inventoryCon
 router.post('/transfer', hasPermission(PERMISSIONS.TRANSFER_INVENTORY), inventoryController.transferInventory);
 
 export default router;
+

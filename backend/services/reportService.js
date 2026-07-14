@@ -250,9 +250,15 @@ export const getProductReport = async (query, scope, role) => {
 // ---------- Inventory Report ----------
 
 export const getInventoryReport = async (query, scope, role) => {
-  const { branchId: queryBranch } = query;
+  const { period, startDate, endDate, branchId: queryBranch } = query;
   const branchMatch = buildBranchMatch(scope, role, queryBranch);
   const branchFilter = branchMatch.branchId ? { branchId: branchMatch.branchId } : {};
+
+  const recentRestockFilter = { ...branchFilter };
+  if (period) {
+    const { start, end } = getDateRange(period, startDate, endDate);
+    recentRestockFilter.updatedAt = { $gte: start, $lte: end };
+  }
 
   const [total, outOfStock, lowStock, recentRestock] = await Promise.all([
     Inventory.countDocuments(branchFilter),
@@ -261,7 +267,7 @@ export const getInventoryReport = async (query, scope, role) => {
       ...branchFilter,
       $expr: { $and: [{ $gt: ['$quantity', 0] }, { $lte: ['$quantity', '$threshold'] }] }
     }),
-    Inventory.find(branchFilter)
+    Inventory.find(recentRestockFilter)
       .sort({ updatedAt: -1 })
       .limit(10)
       .populate('productId', 'name sku')
@@ -543,4 +549,39 @@ export const formatLowStockCSV = (data) => {
   }));
   return exportToCSV(headers, rows);
 };
+
+export const formatBranchCSV = (branches) => {
+  const headers = ['Branch', 'Total Orders', 'Revenue', 'Avg Order', 'Customers'];
+  const rows = branches.map(b => ({
+    Branch: b.branchName || 'Unknown Branch',
+    'Total Orders': b.totalOrders,
+    Revenue: b.totalRevenue,
+    'Avg Order': b.avgOrderValue,
+    Customers: b.totalCustomers
+  }));
+  return exportToCSV(headers, rows);
+};
+
+export const formatInventoryCSV = (recentRestock) => {
+  const headers = ['Product', 'SKU', 'Current Stock', 'Branch'];
+  const rows = recentRestock.map(item => ({
+    Product: item.productId?.name || 'Unknown Product',
+    SKU: item.productId?.sku || 'N/A',
+    'Current Stock': item.quantity,
+    Branch: item.branchId?.name || 'N/A'
+  }));
+  return exportToCSV(headers, rows);
+};
+
+export const formatCustomerCSV = (topSpenders) => {
+  const headers = ['Customer', 'Phone', 'Total Spent', 'Total Orders'];
+  const rows = topSpenders.map(c => ({
+    Customer: c.name || 'Unknown',
+    Phone: c.phone || 'N/A',
+    'Total Spent': c.totalSpent,
+    'Total Orders': c.totalOrders
+  }));
+  return exportToCSV(headers, rows);
+};
+
 

@@ -9,8 +9,7 @@ const ingredientSchema = new mongoose.Schema({
   category: {
     type: String,
     enum: ['Vegetables', 'Dairy', 'Meat', 'Spices', 'Oil', 'Beverages', 'Bakery', 'Frozen', 'Other'],
-    required: [true, 'Category is required'],
-    index: true
+    required: [true, 'Category is required']
   },
   unit: {
     type: String,
@@ -92,8 +91,7 @@ const ingredientSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['ACTIVE', 'INACTIVE'],
-    default: 'ACTIVE',
-    index: true
+    default: 'ACTIVE'
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

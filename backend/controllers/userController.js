@@ -40,3 +40,20 @@ export const deactivateUser = asyncHandler(async (req, res) => {
   logger.info(`User '${updatedUser.username}' deactivated by admin: ${req.user.username}`);
   return sendSuccess(res, 'User deactivated (soft-deleted) successfully', { user: updatedUser });
 });
+
+export const getPendingUsers = asyncHandler(async (req, res) => {
+  const users = await userService.getPendingUsers();
+  return sendSuccess(res, 'Pending user accounts retrieved', { users });
+});
+
+export const approveUser = asyncHandler(async (req, res) => {
+  const user = await userService.approveUser(req.params.id, req.user, req);
+  logger.info(`User '${user.username}' approved by Super Admin: ${req.user.username}`);
+  return sendSuccess(res, 'User account approved and activated successfully', { user });
+});
+
+export const rejectUser = asyncHandler(async (req, res) => {
+  const user = await userService.rejectUser(req.params.id, req.user, req);
+  logger.info(`User '${user.username}' rejected by Super Admin: ${req.user.username}`);
+  return sendSuccess(res, 'User account application rejected', { user });
+});

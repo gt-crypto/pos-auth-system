@@ -15,7 +15,8 @@ import {
   Power,
   Lock,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Clock
 } from 'lucide-react';
 import api from '../../services/api.js';
 import Button from '../../components/Button.jsx';
@@ -23,8 +24,10 @@ import Input from '../../components/Input.jsx';
 
 export const Users = ({ user: currentUser, showToast }) => {
   const [users, setUsers] = useState([]);
+  const [pendingUsers, setPendingUsers] = useState([]);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('ALL'); // ALL or PENDING
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   
@@ -64,6 +67,16 @@ export const Users = ({ user: currentUser, showToast }) => {
     }
   };
 
+  const fetchPendingUsers = async () => {
+    if (currentUser?.role !== 'SUPER_ADMIN') return;
+    try {
+      const res = await api.get('/users/pending');
+      setPendingUsers(res.data.data.users || []);
+    } catch (err) {
+      // Silently fail — non-critical
+    }
+  };
+
   const fetchBranches = async () => {
     if (currentUser?.role === 'SUPER_ADMIN') {
       try {
@@ -79,6 +92,7 @@ export const Users = ({ user: currentUser, showToast }) => {
   useEffect(() => {
     fetchUsers();
     fetchBranches();
+    fetchPendingUsers();
   }, []);
 
   const handleInputChange = (e) => {
@@ -210,6 +224,28 @@ export const Users = ({ user: currentUser, showToast }) => {
     }
   };
 
+  const handleApproveUser = async (userRecord) => {
+    try {
+      await api.post(`/users/${userRecord._id}/approve`);
+      showToast(`${userRecord.name} approved and activated successfully`, 'success');
+      fetchPendingUsers();
+      fetchUsers();
+    } catch (err) {
+      showToast(getErrorMessage(err, 'Failed to approve user'), 'error');
+    }
+  };
+
+  const handleRejectUser = async (userRecord) => {
+    try {
+      await api.post(`/users/${userRecord._id}/reject`);
+      showToast(`${userRecord.name}'s application rejected`, 'success');
+      fetchPendingUsers();
+      fetchUsers();
+    } catch (err) {
+      showToast(getErrorMessage(err, 'Failed to reject user'), 'error');
+    }
+  };
+
   // Filter users
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -248,35 +284,159 @@ export const Users = ({ user: currentUser, showToast }) => {
         </Button>
       </header>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search users by name, username, or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200/80 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm font-semibold text-slate-700"
-          />
+      {/* Tab Bar — Super Admin only shows Pending tab */}
+      {currentUser?.role === 'SUPER_ADMIN' && (
+        <div className="flex border-b border-slate-200 select-none">
+          <button
+            onClick={() => setActiveTab('ALL')}
+            className={`py-3 px-6 font-bold text-xs uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'ALL'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <UsersIcon className="h-4 w-4" /> All Users
+          </button>
+          <button
+            onClick={() => setActiveTab('PENDING')}
+            className={`py-3 px-6 font-bold text-xs uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'PENDING'
+                ? 'border-amber-500 text-amber-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Clock className="h-4 w-4" /> Pending Approvals
+            {pendingUsers.length > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-amber-500 text-white">
+                {pendingUsers.length}
+              </span>
+            )}
+          </button>
         </div>
-        
-        <div className="flex gap-2 w-full md:w-auto overflow-x-auto select-none">
-          {['ALL', 'ACTIVE', 'INACTIVE', 'SUSPENDED'].map((status) => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
-                statusFilter === status
-                  ? 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-500/20'
-                  : 'bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              {status}
-            </button>
-          ))}
+      )}
+
+      {/* PENDING APPROVALS TAB */}
+      {activeTab === 'PENDING' && currentUser?.role === 'SUPER_ADMIN' && (
+        <div className="flex flex-col gap-4">
+          {pendingUsers.length === 0 ? (
+            <div className="glass-card rounded-2xl p-12 border border-slate-200/80 text-center text-slate-400">
+              <Clock className="h-8 w-8 mx-auto mb-3 opacity-30" />
+              No pending user account applications.
+            </div>
+          ) : (
+            <div className="overflow-x-auto w-full glass-card rounded-2xl border border-amber-200/60 shadow-md">
+              <div className="px-6 py-3 bg-amber-50/80 border-b border-amber-200/50 flex items-center gap-2">
+                <Clock className="h-4 w-4 text-amber-600" />
+                <span className="text-xs font-bold text-amber-700">{pendingUsers.length} user account(s) awaiting review</span>
+              </div>
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="p-4 pl-6">User</th>
+                    <th className="p-4">Contact</th>
+                    <th className="p-4">Role</th>
+                    <th className="p-4">Branch</th>
+                    <th className="p-4">Requested</th>
+                    <th className="p-4 pr-6 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700 bg-white/40">
+                  {pendingUsers.map((u) => (
+                    <tr key={u._id} className="hover:bg-amber-50/20 transition-colors">
+                      <td className="p-4 pl-6">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200 shrink-0 text-amber-600">
+                            <User className="h-4.5 w-4.5" />
+                          </div>
+                          <div>
+                            <span className="text-sm font-bold text-slate-900 block">{u.name}</span>
+                            <span className="text-[11px] text-slate-400 font-mono">@{u.username}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="flex items-center gap-1.5"><Mail className="h-3 w-3 text-slate-400" /> {u.email}</span>
+                          {u.phone && <span className="flex items-center gap-1.5"><Phone className="h-3 w-3 text-slate-400" /> {u.phone}</span>}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase ${getRoleBadgeColor(u.role)}`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        {u.branchId ? (
+                          <span className="flex items-center gap-1.5 text-slate-800">
+                            <Building2 className="h-3.5 w-3.5 text-slate-400" />
+                            {u.branchId.name || 'Branch'}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 italic">None</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-slate-500">
+                        {new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td className="p-4 pr-6 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleApproveUser(u)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-sm"
+                            title="Approve this user"
+                          >
+                            <Check className="h-3.5 w-3.5" /> Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectUser(u)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors"
+                            title="Reject this user"
+                          >
+                            <X className="h-3.5 w-3.5" /> Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      </div>
+      )}
+
+      {/* ALL USERS TAB */}
+      {activeTab === 'ALL' && (
+        <>
+          {/* Filter and Search Bar */}
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search users by name, username, or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200/80 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm font-semibold text-slate-700"
+              />
+            </div>
+            
+            <div className="flex gap-2 w-full md:w-auto overflow-x-auto select-none">
+              {['ALL', 'ACTIVE', 'INACTIVE', 'SUSPENDED'].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
+                    statusFilter === status
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-500/20'
+                      : 'bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -379,6 +539,8 @@ export const Users = ({ user: currentUser, showToast }) => {
         <div className="glass-card rounded-2xl p-12 border border-slate-200/80 text-center text-slate-400">
           No users found.
         </div>
+      )}
+        </>
       )}
 
       {/* CREATE USER MODAL */}

@@ -711,3 +711,61 @@ export const getDashboardMetrics = async (scope) => {
     recentlyRestockedCount
   };
 };
+
+// ---------- Transfer History ----------
+
+export const getTransferHistory = async (scope, query = {}) => {
+  const {
+    fromBranch,
+    toBranch,
+    productId,
+    status,
+    page = 1,
+    limit = 10
+  } = query;
+
+  const filter = {};
+
+  // Scope: Admin sees only transfers involving their branch
+  if (!scope.isSuperAdmin) {
+    filter.$or = [
+      { fromBranch: scope.branchId },
+      { toBranch: scope.branchId }
+    ];
+  } else {
+    // Super Admin optional filters
+    if (fromBranch) filter.fromBranch = fromBranch;
+    if (toBranch) filter.toBranch = toBranch;
+  }
+
+  if (productId) filter.productId = productId;
+  if (status) filter.status = status;
+
+  const skipIndex = (parseInt(page) - 1) * parseInt(limit);
+  const totalRecords = await StockTransfer.countDocuments(filter);
+
+  const transfers = await StockTransfer.find(filter)
+    .populate('fromBranch', 'name branchCode')
+    .populate('toBranch', 'name branchCode')
+    .populate('productId', 'name sku')
+    .populate('transferredBy', 'username name')
+    .populate('approvedBy', 'username name')
+    .sort({ createdAt: -1 })
+    .skip(skipIndex)
+    .limit(parseInt(limit))
+    .lean();
+
+  const totalPages = Math.ceil(totalRecords / parseInt(limit));
+
+  return {
+    transfers,
+    pagination: {
+      totalRecords,
+      currentPage: parseInt(page),
+      totalPages,
+      hasNext: parseInt(page) < totalPages,
+      hasPrevious: parseInt(page) > 1
+    }
+  };
+};
+
