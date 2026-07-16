@@ -49,6 +49,15 @@ export const AuthProvider = ({ children }) => {
 
   // Check user session
   const checkSession = useCallback(async () => {
+    if (!hasClientSessionMarker()) {
+      setUser(null);
+      setLoading(false);
+      api.post('/auth/logout').catch(() => {
+        // Ignore network failures while clearing a stale startup cookie.
+      });
+      return;
+    }
+
     let hasAttemptedRetry = false;
 
     const attemptFetch = async () => {
