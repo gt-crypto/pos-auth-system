@@ -10,7 +10,13 @@
     "seed:demo": "node seedDemoData.js",
     "docker:build": "docker build -t pos-auth-backend .",
     "docker:up": "docker compose -f ../docker-compose.yml up -d",
-    "docker:down": "docker compose -f ../docker-compose.yml down"
+    "docker:down": "docker compose -f ../docker-compose.yml down",
+    "test:verify": "node verifyModules.js",
+    "test:verify78": "node verifyModules78.js",
+    "test:verify910": "node verifyModules910.js",
+    "test:verify1112": "node verifyModules1112.js",
+    "test:verify1314": "node verifyModules1314.js",
+    "test:verify1516": "node verifyModules1516.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

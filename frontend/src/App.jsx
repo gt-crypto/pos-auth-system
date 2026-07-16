@@ -23,8 +23,8 @@ const RoleDashboardRedirect = ({ allowedRole }) => {
 export const App = () => {
   return (
     <ToastProvider>
-      <AuthProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
           <Routes>
             {/* GUEST ROUTES (Block authenticated users from returning to login/reset) */}
             <Route element={<GuestRoute />}>
@@ -43,8 +43,8 @@ export const App = () => {
             {/* Fallback routing */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </ToastProvider>
   );
 };

@@ -8,6 +8,7 @@ import { LOCKOUT_RULES } from '../constants/auth.js';
 import { ROLES } from '../constants/roles.js';
 import logger from '../config/logger.js';
 import { logAudit } from '../utils/auditLogger.js';
+import { normalizeUsername } from '../utils/usernameNormalizer.js';
 
 /**
  * Generate JWT and set it in HttpOnly Secure Cookie
@@ -18,7 +19,8 @@ const sendTokenResponse = (user, statusCode, res, message, rememberMe = false) =
   });
 
   const cookieOptions = {
-    httpOnly: true
+    httpOnly: true,
+    path: '/'
   };
 
   if (rememberMe) {
@@ -65,7 +67,7 @@ export const register = async (req, res, next) => {
     delete req.body.status;
 
     // Username Case-Insensitivity Check: Normalize username and check availability
-    const usernameLower = username.trim().toLowerCase();
+    const usernameLower = normalizeUsername(username);
     const usernameExists = await User.findOne({ username: usernameLower });
     if (usernameExists) {
       return sendError(res, 'Username already taken', 400);
@@ -138,7 +140,7 @@ export const login = async (req, res, next) => {
     const ipAddress = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
     const userAgent = req.headers['user-agent'] || 'Unknown Device';
 
-    const user = await User.findOne({ username: username.toLowerCase() });
+    const user = await User.findOne({ username: normalizeUsername(username) });
 
     if (!user) {
       logger.warn(`Login failed: Username '${username}' not found.`);
@@ -287,7 +289,8 @@ export const logout = async (req, res, next) => {
   try {
     const cookieOptions = {
       expires: new Date(0),
-      httpOnly: true
+      httpOnly: true,
+      path: '/'
     };
 
     if (process.env.NODE_ENV === 'production') {
@@ -433,7 +436,22 @@ export const changePassword = async (req, res, next) => {
     });
 
     logger.info(`Password changed securely for user: ${user.username}`);
-    res.clearCookie('jwt');
+    
+    const cookieOptions = {
+      expires: new Date(0),
+      httpOnly: true,
+      path: '/'
+    };
+
+    if (process.env.NODE_ENV === 'production') {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = 'none';
+    } else {
+      cookieOptions.secure = false;
+      cookieOptions.sameSite = 'lax';
+    }
+    res.cookie('jwt', '', cookieOptions);
+
     return sendSuccess(res, 'Password changed successfully. Please login again.');
   } catch (error) {
     next(error);
@@ -467,7 +485,7 @@ export const checkUsername = async (req, res, next) => {
       return sendSuccess(res, 'Username criteria not met', { available: false });
     }
 
-    const user = await User.findOne({ username: username.toLowerCase() });
+    const user = await User.findOne({ username: normalizeUsername(username) });
     return sendSuccess(res, 'Availability calculated', { available: !user });
   } catch (error) {
     next(error);

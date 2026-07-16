@@ -15,9 +15,16 @@ api.interceptors.response.use(
   (error) => {
     // If server returned a standardized failure
     if (error.response && error.response.data) {
-      return Promise.reject(error.response.data);
+      return Promise.reject({
+        ...error.response.data,
+        status: error.response.status
+      });
     }
-    return Promise.reject({ success: false, message: error.message || 'Network error occurred' });
+    return Promise.reject({
+      success: false,
+      message: error.message || 'Network error occurred',
+      isNetworkError: true
+    });
   }
 );
 

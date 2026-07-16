@@ -246,7 +246,13 @@ export const Billing = ({ user, showToast }) => {
 
   // Branch context for Super Admin
   const [branches, setBranches] = useState([]);
-  const [selectedBranchId, setSelectedBranchId] = useState(user?.branchId || '');
+  const [selectedBranchId, setSelectedBranchId] = useState(() => {
+    try {
+      return sessionStorage.getItem('apexify-selected-branch-id') || user?.branchId || '';
+    } catch {
+      return user?.branchId || '';
+    }
+  });
 
   // Split payments layout state
   const [payments, setPayments] = useState([{ method: 'CASH', amount: '', referenceNumber: '' }]);
@@ -276,8 +282,15 @@ export const Billing = ({ user, showToast }) => {
           const res = await api.get('/branches');
           const activeBranches = (res.data.data?.branches || []).filter(b => b.status === 'ACTIVE' && !b.isDeleted);
           setBranches(activeBranches);
-          if (activeBranches.length > 0) {
+          
+          const savedBranchId = sessionStorage.getItem('apexify-selected-branch-id');
+          if (savedBranchId && activeBranches.some(b => b._id === savedBranchId)) {
+            setSelectedBranchId(savedBranchId);
+          } else if (activeBranches.length > 0) {
             setSelectedBranchId(activeBranches[0]._id);
+            try {
+              sessionStorage.setItem('apexify-selected-branch-id', activeBranches[0]._id);
+            } catch {}
           }
         } catch {
           showToast('Failed to load branches list.', 'error');
@@ -537,7 +550,11 @@ export const Billing = ({ user, showToast }) => {
             <select
               value={selectedBranchId}
               onChange={e => {
-                setSelectedBranchId(e.target.value);
+                const val = e.target.value;
+                setSelectedBranchId(val);
+                try {
+                  sessionStorage.setItem('apexify-selected-branch-id', val);
+                } catch {}
                 setCart([]); // Clear cart when switching branches to prevent cross-branch orders
               }}
               className="px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/30 shrink-0"

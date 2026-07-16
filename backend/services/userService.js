@@ -2,11 +2,12 @@ import User from '../models/User.js';
 import Branch from '../models/Branch.js';
 import { ROLES } from '../constants/roles.js';
 import AppError from '../utils/AppError.js';
+import { normalizeUsername } from '../utils/usernameNormalizer.js';
 
 import { logAudit } from '../utils/auditLogger.js';
 
 export const createUser = async (data, actorUser, req) => {
-  const usernameLower = data.username.trim().toLowerCase();
+  const usernameLower = normalizeUsername(data.username);
   const emailLower = data.email.trim().toLowerCase();
 
   // Check unique constraints
