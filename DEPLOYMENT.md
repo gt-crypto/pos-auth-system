@@ -116,6 +116,9 @@ To boot the full stack (database + backend server):
    - **Output Directory**: `dist`
 4. Set the environment variable:
    - `VITE_API_URL` = Your backend API deployment URL.
+5. **Client-Side Routing Fallback (SPA)**:
+   - A `vercel.json` configuration file is included in the `frontend` directory to automatically redirect all route requests back to `index.html`. This ensures that reloading the page on any path (e.g. `/dashboard`) does not result in a Vercel `404: NOT_FOUND` error.
+
 
 ---
 
